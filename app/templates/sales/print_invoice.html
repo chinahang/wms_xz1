@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>销售单 - {{ order.order_no }}</title>
+<style>
+@page { size: 241mm 140mm landscape; margin: 3mm 5mm; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'SimSun', '宋体', serif; font-size: 12px; color: #000; }
+.print-page { width: 231mm; height: 134mm; page-break-after: always; position: relative; padding: 8px 12px; }
+.print-page:last-child { page-break-after: auto; }
+.title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 6px; letter-spacing: 4px; }
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+.header-table td { padding: 2px 4px; font-size: 12px; }
+.header-table .label { white-space: nowrap; width: 60px; }
+.header-table .value { border-bottom: 1px solid #000; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { border: 1px solid #000; padding: 3px 2px; font-size: 13px; text-align: center; }
+.data-table th { background: #f0f0f0; font-weight: bold; }
+.footer { position: absolute; bottom: 24px; left: 12px; right: 12px; }
+.footer-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.footer-table td { padding: 2px 4px; }
+.footer-table .val { display: inline-block; min-width: 80px; border-bottom: 1px solid #000; }
+.sign-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 12px; }
+.sign-table td { padding: 2px 6px; }
+.sign-table .sig { display: inline-block; min-width: 60px; border-bottom: 1px solid #000; }
+.notes { font-size: 10px; color: #555; margin-top: 4px; line-height: 1.6; border-top: 1px solid #ccc; padding-top: 3px; }
+.notes ol { margin: 0; padding-left: 16px; }
+.page-no { position: absolute; bottom: 4px; right: 12px; font-size: 10px; color: #999; }
+@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body onload="window.print(); setTimeout(function(){ window.close(); }, 1000);">
+{% set ns = namespace(page=0) %}
+{% for batch in batches %}
+{% set ns.page = ns.page + 1 %}
+{% set batch_weight = [0] %}
+{% set batch_qty = [0] %}
+{% set batch_amount = [0] %}
+<div class="print-page">
+    <div class="title">
+        {{ order.dept.name if order.dept else '' }}<br>
+        <span style="font-size:20px;letter-spacing:8px;">销 售 单</span>
+    </div>
+    <table class="header-table">
+        <tr>
+            <td class="label">单据编号：</td>
+            <td class="value">NO：{{ order.order_no }}</td>
+            <td width="40"></td>
+            <td class="label">开单日期：</td>
+            <td class="value">{{ order.order_date.strftime('%Y年%m月%d日') if order.order_date else '' }}</td>
+        </tr>
+        <tr>
+            <td class="label">购货单位：</td>
+            <td class="value">{{ order.customer.name if order.customer else '' }}</td>
+            <td></td>
+            <td class="label">提单有效期：</td>
+            <td class="value">5天</td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th width="4%">子项号</th>
+                <th width="9%">卡号</th>
+                <th width="8%">品名</th>
+                <th width="13%">材质/规格</th>
+                <th width="8%">产地</th>
+                <th width="9%">开单重量(t)</th>
+                <th width="6%">件/张</th>
+                <th width="8%">单价</th>
+                <th width="9%">金额</th>
+                <th width="10%">备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in batch %}
+            {% set w = item.split_weight if item.split_weight > 0 else item.weight %}
+            {% set q = item.split_qty if item.split_qty > 0 else item.qty %}
+            {% set amt = item.amount|float if item.amount else 0 %}
+            {% set _ = batch_weight.append(batch_weight.pop() + (w|float)) %}
+            {% set _ = batch_qty.append(batch_qty.pop() + (q|int)) %}
+            {% set _ = batch_amount.append(batch_amount.pop() + amt) %}
+            <tr>
+                <td>{{ loop.index + (ns.page - 1) * 8 }}</td>
+                <td>{{ item.card_no }}</td>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.spec }}</td>
+                <td>{{ item.origin }}</td>
+                <td>{{ '%.3f'|format(w|float) }}</td>
+                <td>{{ q }}</td>
+                <td>{{ item.unit_price or '' }}</td>
+                <td>{{ '%.2f'|format(item.amount|float) if item.amount else '' }}</td>
+                <td>{{ item.remark or '' }}</td>
+            </tr>
+            {% endfor %}
+            {% for _ in range(batch|length, 8) %}
+            <tr>
+                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+            </tr>
+            {% endfor %}
+            <tr style="font-weight:bold; border-top:2px solid #000;">
+                <td colspan="5" style="text-align:right">合计：</td>
+                <td>{{ '%.3f'|format(batch_weight[0]) }} 吨</td>
+                <td>{{ batch_qty[0] }}</td>
+                <td></td>
+                <td>{{ '%.2f'|format(batch_amount[0]) }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <table class="footer-table">
+            <tr>
+                <td width="80">仓库地址：</td>
+                <td><span class="val">{{ order.items[0].warehouse if order.items else '' }}</span></td>
+            </tr>
+            {% if order.remark %}
+            <tr>
+                <td>主单备注：</td>
+                <td><span class="val">{{ order.remark }}</span></td>
+            </tr>
+            {% endif %}
+        </table>
+        <table class="sign-table">
+            <tr>
+                <td colspan="2">销售单位印章：</td>
+                <td width="30"></td>
+                <td colspan="2">购货单位印章：</td>
+            </tr>
+            <tr>
+                <td width="60">制单：</td>
+                <td width="70"><span class="sig">{{ current_user.username }}</span></td>
+                <td></td>
+                <td width="60">提货人：</td>
+                <td width="70"><span class="sig">&nbsp;</span></td>
+            </tr>
+            <tr>
+                <td>审核：</td>
+                <td><span class="sig">&nbsp;</span></td>
+                <td></td>
+                <td>收货人：</td>
+                <td><span class="sig">&nbsp;</span></td>
+            </tr>
+        </table>
+        <div class="notes">
+            <ol>
+                <li>本单据经双方签字或盖章生效，转账、涂改、不签字的无效。</li>
+                <li>本提单需双方签字确认，并加盖销售单位公章。</li>
+                <li>提货时请当场点验数量，提货后概不负责；请在七天内提出异议，过期概不负责！</li>
+                <li>白：存根联 红：客户联 蓝：记账联 黄：提货联</li>
+            </ol>
+        </div>
+    </div>
+    {% if batches|length > 1 %}
+    <div class="page-no">{{ ns.page }} / {{ batches|length }}</div>
+    {% endif %}
+</div>
+{% endfor %}
+</body>
+</html>

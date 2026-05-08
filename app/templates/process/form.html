@@ -1,0 +1,656 @@
+{% extends "base.html" %}
+
+{% block title %}{% if readonly %}加工单详情{% elif edit_mode %}编辑加工单{% else %}新建加工单{% endif %} - 钢材进销存{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">{% if readonly %}加工单详情{% elif edit_mode %}编辑加工单{% else %}新建加工单{% endif %}</h1>
+    <div class="flex gap-2">
+        {% if readonly %}
+        <a href="{{ url_for('process.edit', id=order.id) }}" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">编辑</a>
+        {% endif %}
+        <a href="{{ url_for('process.index') }}" class="px-4 py-2 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600">返回</a>
+    </div>
+</div>
+
+{% if readonly %}
+<div class="bg-white rounded-xl shadow-sm p-6 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">销售部门</label>
+            <div class="px-3 py-2 border rounded-lg text-sm bg-slate-50">{{ order.dept.name if order.dept else '-' }}</div>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">加工日期</label>
+            <div class="px-3 py-2 border rounded-lg text-sm bg-slate-50">{{ order.order_date.strftime('%Y-%m-%d') if order.order_date else '-' }}</div>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">备注</label>
+            <div class="px-3 py-2 border rounded-lg text-sm bg-slate-50">{{ order.remark or '' }}</div>
+        </div>
+    </div>
+</div>
+
+{% if raw_inventory %}
+<div class="bg-amber-50 rounded-xl shadow-sm p-6 mb-4 border border-amber-200">
+    <h2 class="text-lg font-semibold text-amber-700 mb-4">原料</h2>
+    <table class="w-full text-sm">
+        <thead><tr class="border-b text-slate-500">
+            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
+            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">件数</th><th class="py-2 px-2 text-right">吨位</th>
+            <th class="py-2 px-2 text-left">仓库</th>
+        </tr></thead>
+        <tbody>
+            <tr>
+                <td class="py-2 px-2">{{ raw_inventory.product_name }}</td>
+                <td class="py-2 px-2 font-mono text-amber-700">{{ raw_inventory.card_no }}</td>
+                <td class="py-2 px-2">{{ raw_inventory.brand }}</td>
+                <td class="py-2 px-2">{{ raw_inventory.origin }}</td>
+                <td class="py-2 px-2">{{ raw_inventory.spec }}</td>
+                <td class="py-2 px-2 text-right">{{ raw_inventory.qty }}</td>
+                <td class="py-2 px-2 text-right">{{ raw_inventory.weight }}</td>
+                <td class="py-2 px-2">{{ raw_inventory.warehouse.name if raw_inventory.warehouse else '-' }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow-sm p-6 mb-4">
+    <h2 class="text-lg font-semibold text-slate-700 mb-4">成品</h2>
+    <table class="w-full text-sm">
+        <thead><tr class="border-b text-slate-500">
+            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
+            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">张数</th><th class="py-2 px-2 text-right">理算吨位</th>
+        </tr></thead>
+        <tbody>
+            {% for d in order.details %}
+            <tr class="border-b hover:bg-slate-50">
+                <td class="py-2 px-2">{{ d.product_name }}</td>
+                <td class="py-2 px-2 font-mono text-xs">{{ d.new_card_no }}</td>
+                <td class="py-2 px-2">{{ d.brand }}</td>
+                <td class="py-2 px-2">{{ d.origin }}</td>
+                <td class="py-2 px-2">{{ d.spec }}</td>
+                <td class="py-2 px-2 text-right">{{ d.qty }}</td>
+                <td class="py-2 px-2 text-right">{{ d.weight }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="border-t-2 border-slate-300 bg-slate-100 font-semibold text-sm">
+                <td colspan="5" class="py-2 px-2 text-right">合计</td>
+                <td class="py-2 px-2 text-right">{{ order.total_qty }}</td>
+                <td class="py-2 px-2 text-right">{{ order.total_weight }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{% elif edit_mode %}
+<form method="POST" action="{{ url_for('process.edit', id=order.id) }}">
+<div class="bg-white rounded-xl shadow-sm p-6 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">销售部门</label>
+            <select name="dept_id" id="process-dept-id" required class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">请选择</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {{ 'selected' if order.dept_id == d.id }}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">加工日期</label>
+            <input type="date" name="order_date" value="{{ order.order_date.strftime('%Y-%m-%d') if order.order_date else '' }}" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">备注</label>
+            <textarea name="remark" rows="1" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ order.remark or '' }}</textarea>
+        </div>
+    </div>
+</div>
+
+{% if raw_inventory %}
+<div id="raw-material-section" class="bg-amber-50 rounded-xl shadow-sm p-6 mb-4 border border-amber-200">
+    <h2 class="text-lg font-semibold text-amber-700 mb-4">原料</h2>
+    <table class="w-full text-sm">
+        <thead><tr class="border-b text-slate-500">
+            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
+            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">件数</th><th class="py-2 px-2 text-right">吨位</th>
+            <th class="py-2 px-2 text-right">剩余吨位</th><th class="py-2 px-2 text-left">仓库</th>
+        </tr></thead>
+        <tbody>
+            <tr>
+                <td id="raw-pn" class="py-2 px-2">{{ raw_inventory.product_name }}</td>
+                <td id="raw-card" class="py-2 px-2 font-mono text-amber-700" data-card-no="{{ raw_inventory.card_no }}">{{ raw_inventory.card_no }}</td>
+                <td id="raw-brand" class="py-2 px-2">{{ raw_inventory.brand }}</td>
+                <td id="raw-origin" class="py-2 px-2">{{ raw_inventory.origin }}</td>
+                <td id="raw-spec" class="py-2 px-2" data-spec="{{ raw_inventory.spec }}">{{ raw_inventory.spec }}</td>
+                <td id="raw-qty" class="py-2 px-2 text-right">{{ raw_inventory.qty }}</td>
+                <td id="raw-weight" class="py-2 px-2 text-right">{{ raw_inventory.weight }}</td>
+                <td id="raw-remaining" class="py-2 px-2 text-right">{{ raw_weight }}</td>
+                <td id="raw-warehouse" class="py-2 px-2">{{ raw_inventory.warehouse.name if raw_inventory.warehouse else '-' }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <input type="hidden" name="raw_card_no" value="{{ raw_inventory.card_no }}">
+    <input type="hidden" name="raw_spec" value="{{ raw_inventory.spec }}">
+</div>
+{% endif %}
+
+<div id="products-section" class="bg-white rounded-xl shadow-sm p-6 mb-4" {% if not raw_inventory %}style="display:none"{% endif %}>
+    <h2 class="text-lg font-semibold text-slate-700 mb-4">成品</h2>
+    <table class="w-full text-sm mb-4">
+        <thead><tr class="border-b text-slate-500">
+            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
+            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">张数</th><th class="py-2 px-2 text-right">理算吨位</th><th class="py-2 px-2 text-left">仓库</th><th class="py-2 px-2 text-left">备注</th><th class="py-2 px-2 text-center">操作</th>
+        </tr></thead>
+        <tbody id="products-container">
+            {% for d in order.details %}
+            <tr class="border-b hover:bg-slate-50" data-weight="{{ d.weight }}">
+                <td class="py-2 px-2">
+                    <select name="product_name[]" class="w-full px-1 py-0 border rounded text-xs">
+                        <option value="">请选择</option>
+                        {% for pn in product_names %}
+                        <option value="{{ pn.name }}" {{ 'selected' if d.product_name == pn.name }}>{{ pn.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="py-2 px-2 font-mono text-xs"><span>{{ d.new_card_no }}</span><input type="hidden" name="new_card_no[]" value="{{ d.new_card_no }}"></td>
+                <td class="py-2 px-2"><span>{{ d.brand }}</span><input type="hidden" name="brand[]" value="{{ d.brand }}"></td>
+                <td class="py-2 px-2"><span>{{ d.origin }}</span><input type="hidden" name="origin[]" value="{{ d.origin }}"></td>
+                <td class="py-2 px-2"><input type="text" name="spec[]" value="{{ d.spec }}" class="w-full px-1 py-0 border rounded text-xs"></td>
+                <td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="{{ d.qty }}" min="1" class="w-16 px-1 py-0 border rounded text-xs text-right"></td>
+                <td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="{{ d.weight }}" min="0" class="w-20 px-1 py-0 border rounded text-xs text-right item-weight"></td>
+                <td class="py-2 px-2"><span>{{ raw_inventory.warehouse.name if raw_inventory and raw_inventory.warehouse else '-' }}</span><input type="hidden" name="warehouse[]" value="{{ raw_inventory.warehouse.name if raw_inventory and raw_inventory.warehouse else '' }}"></td>
+                <td class="py-2 px-2"><input type="text" name="remark[]" value="" class="w-full px-1 py-0 border rounded text-xs"></td>
+                <td class="py-2 px-2 text-center"><button type="button" onclick="removeProduct(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>
+            </tr>
+            {% endfor %}
+            <tr id="product-summary-row" class="border-t-2 border-slate-300 bg-slate-100 font-semibold text-sm">
+                <td colspan="5" class="py-2 px-2 text-right">当前合计</td>
+                <td id="sum-qty" class="py-2 px-2 text-right">0</td>
+                <td id="sum-weight" class="py-2 px-2 text-right">0</td>
+                <td></td><td></td><td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="flex items-end gap-3 flex-wrap">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">品名</label>
+            <select id="add-product-name" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-32">
+                <option value="">请选择</option>
+                {% for pn in product_names %}
+                <option value="{{ pn.name }}">{{ pn.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">规格</label>
+            <input type="text" id="add-spec" placeholder="1.5*1250*2500" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">张数</label>
+            <input type="number" id="add-qty" min="1" value="1" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-20">
+        </div>
+        <button type="button" onclick="addProductDetail()" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">添加明细</button>
+        <button type="button" onclick="recalculateAll()" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">一键理算</button>
+    </div>
+</div>
+
+<button type="submit" class="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600">保存修改</button>
+</form>
+
+<div id="inventory-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="text-lg font-semibold text-slate-700">选择库存（仅可选一条原料）</h3>
+            <button type="button" onclick="closeInventoryModal()" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
+        </div>
+        <div id="inventory-modal-body" class="overflow-y-auto">
+            <p class="p-4 text-slate-400 text-center">点击"选择库存"按钮加载库存数据</p>
+        </div>
+    </div>
+</div>
+
+<script>
+var calcEnabledNames = {{ calc_enabled_names | tojson }};
+var rawWeight = {{ raw_weight }};
+var productSeq = {{ order.details|length + 1 }};
+
+function openInventoryModal() {
+    var deptId = document.getElementById('process-dept-id').value;
+    if (!deptId) { alert('请先选择销售部门'); return; }
+    var url = '{{ url_for("process.inventory_modal") }}?dept_id=' + deptId;
+    htmx.ajax('GET', url, '#inventory-modal-body');
+    document.getElementById('inventory-modal').classList.remove('hidden');
+}
+function closeInventoryModal() {
+    document.getElementById('inventory-modal').classList.add('hidden');
+}
+function selectRawMaterial(row) {
+    var d = row.dataset;
+    rawWeight = parseFloat(d.weight);
+    document.getElementById('raw-pn').textContent = d.productName;
+    document.getElementById('raw-card').textContent = d.cardNo;
+    document.getElementById('raw-brand').textContent = d.brand;
+    document.getElementById('raw-origin').textContent = d.origin;
+    document.getElementById('raw-spec').textContent = d.spec;
+    document.getElementById('raw-qty').textContent = d.qty;
+    document.getElementById('raw-weight').textContent = d.weight;
+    document.getElementById('raw-warehouse').textContent = d.warehouse || '-';
+    updateRemaining();
+    document.getElementById('raw-material-section').style.display = '';
+    document.getElementById('products-section').style.display = '';
+    closeInventoryModal();
+    document.getElementById('raw-card').setAttribute('data-card-no', d.cardNo);
+    document.getElementById('raw-spec').setAttribute('data-spec', d.spec);
+    productSeq = 1;
+    var container = document.getElementById('products-container');
+    var children = container.querySelectorAll('tr:not(#product-summary-row)');
+    children.forEach(function(c) { c.remove(); });
+    updateFormSummary();
+}
+
+function updateRemaining() {
+    var totalWeight = 0;
+    var rows = document.querySelectorAll('#products-container tr[data-weight]');
+    rows.forEach(function(r) { totalWeight += parseFloat(r.dataset.weight) || 0; });
+    var remaining = (rawWeight - totalWeight).toFixed(3);
+    document.getElementById('raw-remaining').textContent = remaining;
+}
+
+function addProductDetail() {
+    var pn = document.getElementById('add-product-name').value;
+    var spec = document.getElementById('add-spec').value.trim();
+    var qty = parseInt(document.getElementById('add-qty').value) || 0;
+    if (!pn) { alert('请选择品名'); return; }
+    if (!spec) { alert('请输入规格'); return; }
+    if (qty <= 0) { alert('请输入张数'); return; }
+    var calcWeight = 0;
+    if (calcEnabledNames.indexOf(pn) >= 0) {
+        var parts = spec.split('*').map(function(s) { return parseFloat(s.trim()); });
+        if (parts.length === 3 && parts.every(function(p) { return p > 0; })) {
+            calcWeight = (parts[0] * parts[1] * parts[2] * 7.85 / 1000000000).toFixed(3) * qty;
+            calcWeight = parseFloat(calcWeight.toFixed(3));
+        } else {
+            alert('规格格式不正确，请使用 厚度*宽度*长度 格式'); return;
+        }
+    } else {
+        alert('该品名未启用理算，无法自动计算吨位'); return;
+    }
+    var rawCard = document.getElementById('raw-card').getAttribute('data-card-no');
+    var newCardNo = rawCard + '-' + productSeq;
+    productSeq++;
+    var brand = document.getElementById('raw-brand').textContent;
+    var origin = document.getElementById('raw-origin').textContent;
+    var warehouse = document.getElementById('raw-warehouse').textContent;
+    var container = document.getElementById('products-container');
+    var tr = document.createElement('tr');
+    tr.className = 'border-b hover:bg-slate-50';
+    tr.dataset.weight = calcWeight;
+    tr.innerHTML = '<td class="py-2 px-2"><select name="product_name[]" class="w-full px-1 py-0 border rounded text-xs"><option value="">请选择</option>{% for pn in product_names %}<option value="{{ pn.name }}">{{ pn.name }}</option>{% endfor %}</select></td>'
+        + '<td class="py-2 px-2 font-mono text-xs"><span>' + newCardNo + '</span><input type="hidden" name="new_card_no[]" value="' + newCardNo + '"></td>'
+        + '<td class="py-2 px-2"><span>' + brand + '</span><input type="hidden" name="brand[]" value="' + brand + '"></td>'
+        + '<td class="py-2 px-2"><span>' + origin + '</span><input type="hidden" name="origin[]" value="' + origin + '"></td>'
+        + '<td class="py-2 px-2"><input type="text" name="spec[]" value="' + spec + '" class="w-full px-1 py-0 border rounded text-xs"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="' + qty + '" min="1" class="w-16 px-1 py-0 border rounded text-xs text-right"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="' + calcWeight + '" min="0" class="w-20 px-1 py-0 border rounded text-xs text-right item-weight"></td>'
+        + '<td class="py-2 px-2"><span>' + warehouse + '</span><input type="hidden" name="warehouse[]" value="' + (warehouse === '-' ? '' : warehouse) + '"></td>'
+        + '<td class="py-2 px-2"><input type="text" name="remark[]" value="" class="w-full px-1 py-0 border rounded text-xs"></td>'
+        + '<td class="py-2 px-2 text-center"><button type="button" onclick="removeProduct(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>';
+    tr.querySelector('select[name="product_name[]"]').value = pn;
+    container.insertBefore(tr, document.getElementById('product-summary-row'));
+    document.getElementById('raw-card').insertAdjacentHTML('afterend', '<input type="hidden" name="raw_card_no" id="hidden-raw-card-no" value="' + rawCard + '">');
+    document.getElementById('raw-spec').insertAdjacentHTML('afterend', '<input type="hidden" name="raw_spec" value="' + document.getElementById('raw-spec').getAttribute('data-spec') + '">');
+    document.getElementById('add-product-name').value = '';
+    document.getElementById('add-spec').value = '';
+    document.getElementById('add-qty').value = '1';
+    updateRemaining();
+    updateFormSummary();
+}
+
+function removeProduct(btn) {
+    btn.closest('tr').remove();
+    updateRemaining();
+    updateFormSummary();
+}
+
+function recalculateAll() {
+    var rows = document.querySelectorAll('#products-container tr[data-weight]');
+    rows.forEach(function(r) {
+        var pnSelect = r.querySelector('select[name="product_name[]"]');
+        var pn = pnSelect ? pnSelect.value : '';
+        if (calcEnabledNames.indexOf(pn) < 0) return;
+        var specInput = r.querySelector('input[name="spec[]"]');
+        var qtyInput = r.querySelector('input[name="qty[]"]');
+        var weightInput = r.querySelector('input[name="weight[]"]');
+        if (!specInput || !qtyInput || !weightInput) return;
+        var spec = specInput.value.trim();
+        var qty = parseInt(qtyInput.value) || 0;
+        if (!spec || qty <= 0) return;
+        var parts = spec.split('*').map(function(s) { return parseFloat(s.trim()); });
+        if (parts.length !== 3 || !parts.every(function(p) { return p > 0; })) return;
+        var calcWeight = (parts[0] * parts[1] * parts[2] * 7.85 / 1000000000).toFixed(3) * qty;
+        calcWeight = parseFloat(calcWeight.toFixed(3));
+        weightInput.value = calcWeight;
+        r.dataset.weight = calcWeight;
+    });
+    updateRemaining();
+    updateFormSummary();
+}
+
+function updateFormSummary() {
+    var rows = document.querySelectorAll('#products-container tr[data-weight]');
+    var qty = 0, weight = 0;
+    rows.forEach(function(r) {
+        qty += parseInt((r.querySelector('input[name^="qty"]') || {}).value) || 0;
+        weight += parseFloat((r.querySelector('input[name^="weight"]') || {}).value) || 0;
+    });
+    document.getElementById('sum-qty').textContent = qty;
+    document.getElementById('sum-weight').textContent = weight.toFixed(3);
+}
+
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('item-weight')) {
+        var tr = e.target.closest('tr');
+        if (tr && tr.dataset.weight !== undefined) {
+            tr.dataset.weight = parseFloat(e.target.value) || 0;
+        }
+        updateRemaining();
+        updateFormSummary();
+    }
+});
+
+document.addEventListener('click', function(e) {
+    var row = e.target.closest('.inv-row');
+    if (row) {
+        selectRawMaterial(row);
+        e.preventDefault();
+    }
+});
+
+updateRemaining();
+updateFormSummary();
+</script>
+
+{% else %}
+<form method="POST" action="{{ url_for('process.create') }}">
+<div class="bg-white rounded-xl shadow-sm p-6 mb-4">
+    <div class="flex items-end gap-4 flex-wrap">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">销售部门</label>
+            <select id="process-dept-id" name="dept_id" required class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-40">
+                <option value="">请选择</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}">{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">加工日期</label>
+            <input type="date" name="order_date" value="{{ today }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">加工备注</label>
+            <input type="text" name="remark" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-40" placeholder="备注">
+        </div>
+        <button type="button" onclick="openInventoryModal()" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">选择库存</button>
+    </div>
+</div>
+
+<!-- Raw Material Section -->
+<div id="raw-material-section" class="bg-amber-50 rounded-xl shadow-sm p-6 mb-4 border border-amber-200" style="display:none">
+    <h2 class="text-lg font-semibold text-amber-700 mb-4">原料</h2>
+    <table class="w-full text-sm">
+        <thead><tr class="border-b text-slate-500">
+            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
+            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">件数</th><th class="py-2 px-2 text-right">吨位</th>
+            <th class="py-2 px-2 text-right">剩余吨位</th><th class="py-2 px-2 text-left">仓库</th><th class="py-2 px-2 text-left">明细备注</th>
+        </tr></thead>
+        <tbody>
+            <tr>
+                <td id="raw-pn" class="py-2 px-2"></td>
+                <td id="raw-card" class="py-2 px-2 font-mono text-amber-700"></td>
+                <td id="raw-brand" class="py-2 px-2"></td>
+                <td id="raw-origin" class="py-2 px-2"></td>
+                <td id="raw-spec" class="py-2 px-2"></td>
+                <td id="raw-qty" class="py-2 px-2 text-right"></td>
+                <td id="raw-weight" class="py-2 px-2 text-right"></td>
+                <td id="raw-remaining" class="py-2 px-2 text-right font-bold text-amber-600"></td>
+                <td id="raw-warehouse" class="py-2 px-2"></td>
+                <td id="raw-remark" class="py-2 px-2"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Product Section -->
+<div id="products-section" class="bg-white rounded-xl shadow-sm p-6 mb-4" style="display:none">
+    <h2 class="text-lg font-semibold text-slate-700 mb-4">成品</h2>
+    <table class="w-full text-sm mb-4">
+        <thead><tr class="border-b text-slate-500">
+            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
+            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">张数</th>            <th class="py-2 px-2 text-right">理算吨位</th><th class="py-2 px-2 text-left">仓库</th><th class="py-2 px-2 text-left">备注</th><th class="py-2 px-2 text-center">操作</th>
+        </tr></thead>
+        <tbody id="products-container">
+            <tr id="product-summary-row" class="border-t-2 border-slate-300 bg-slate-100 font-semibold text-sm">
+                <td colspan="5" class="py-2 px-2 text-right">当前合计</td>
+                <td id="sum-qty" class="py-2 px-2 text-right">0</td>
+                <td id="sum-weight" class="py-2 px-2 text-right">0</td>
+                <td></td><td></td><td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Add Detail Area -->
+    <div class="flex items-end gap-3 flex-wrap">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">品名</label>
+            <select id="add-product-name" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-32">
+                <option value="">请选择</option>
+                {% for pn in product_names %}
+                <option value="{{ pn.name }}">{{ pn.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">规格</label>
+            <input type="text" id="add-spec" placeholder="1.5*1250*2500" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">张数</label>
+            <input type="number" id="add-qty" min="1" value="1" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-20">
+        </div>
+        <button type="button" onclick="addProductDetail()" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">添加明细</button>
+        <button type="button" onclick="recalculateAll()" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">一键理算</button>
+    </div>
+</div>
+
+<button type="submit" class="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600">保存加工单</button>
+</form>
+
+<div id="inventory-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="text-lg font-semibold text-slate-700">选择库存（仅可选一条原料）</h3>
+            <button type="button" onclick="closeInventoryModal()" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
+        </div>
+        <div id="inventory-modal-body" class="overflow-y-auto">
+            <p class="p-4 text-slate-400 text-center">点击"选择库存"按钮加载库存数据</p>
+        </div>
+    </div>
+</div>
+
+<script>
+var calcEnabledNames = {{ calc_enabled_names | tojson }};
+var rawWeight = 0;
+var productSeq = 1;
+
+function openInventoryModal() {
+    var deptId = document.getElementById('process-dept-id').value;
+    if (!deptId) { alert('请先选择销售部门'); return; }
+    var url = '{{ url_for("process.inventory_modal") }}?dept_id=' + deptId;
+    htmx.ajax('GET', url, '#inventory-modal-body');
+    document.getElementById('inventory-modal').classList.remove('hidden');
+}
+function closeInventoryModal() {
+    document.getElementById('inventory-modal').classList.add('hidden');
+}
+function selectRawMaterial(row) {
+    var d = row.dataset;
+    rawWeight = parseFloat(d.weight);
+    document.getElementById('raw-pn').textContent = d.productName;
+    document.getElementById('raw-card').textContent = d.cardNo;
+    document.getElementById('raw-brand').textContent = d.brand;
+    document.getElementById('raw-origin').textContent = d.origin;
+    document.getElementById('raw-spec').textContent = d.spec;
+    document.getElementById('raw-qty').textContent = d.qty;
+    document.getElementById('raw-weight').textContent = d.weight;
+    document.getElementById('raw-warehouse').textContent = d.warehouse || '-';
+    updateRemaining();
+    document.getElementById('raw-material-section').style.display = '';
+    document.getElementById('products-section').style.display = '';
+    closeInventoryModal();
+    // Store raw card_no
+    document.getElementById('raw-card').setAttribute('data-card-no', d.cardNo);
+    document.getElementById('raw-spec').setAttribute('data-spec', d.spec);
+    productSeq = 1;
+    // Clear existing products
+    var container = document.getElementById('products-container');
+    var children = container.querySelectorAll('tr:not(#product-summary-row)');
+    children.forEach(function(c) { c.remove(); });
+    updateFormSummary();
+}
+
+function updateRemaining() {
+    var totalWeight = 0;
+    var rows = document.querySelectorAll('#products-container tr[data-weight]');
+    rows.forEach(function(r) { totalWeight += parseFloat(r.dataset.weight) || 0; });
+    var remaining = (rawWeight - totalWeight).toFixed(3);
+    document.getElementById('raw-remaining').textContent = remaining;
+}
+
+function addProductDetail() {
+    var pn = document.getElementById('add-product-name').value;
+    var spec = document.getElementById('add-spec').value.trim();
+    var qty = parseInt(document.getElementById('add-qty').value) || 0;
+    if (!pn) { alert('请选择品名'); return; }
+    if (!spec) { alert('请输入规格'); return; }
+    if (qty <= 0) { alert('请输入张数'); return; }
+
+    // Calculate weight: round(thickness*width*length*7.85/1e9, 3) * qty
+    var calcWeight = 0;
+    if (calcEnabledNames.indexOf(pn) >= 0) {
+        var parts = spec.split('*').map(function(s) { return parseFloat(s.trim()); });
+        if (parts.length === 3 && parts.every(function(p) { return p > 0; })) {
+            calcWeight = (parts[0] * parts[1] * parts[2] * 7.85 / 1000000000).toFixed(3) * qty;
+            calcWeight = parseFloat(calcWeight.toFixed(3));
+        } else {
+            alert('规格格式不正确，请使用 厚度*宽度*长度 格式'); return;
+        }
+    } else {
+        alert('该品名未启用理算，无法自动计算吨位'); return;
+    }
+
+    var rawCard = document.getElementById('raw-card').getAttribute('data-card-no');
+    var newCardNo = rawCard + '-' + productSeq;
+    productSeq++;
+
+    var brand = document.getElementById('raw-brand').textContent;
+    var origin = document.getElementById('raw-origin').textContent;
+    var warehouse = document.getElementById('raw-warehouse').textContent;
+
+    var container = document.getElementById('products-container');
+    var tr = document.createElement('tr');
+    tr.className = 'border-b hover:bg-slate-50';
+    tr.dataset.weight = calcWeight;
+    tr.innerHTML = '<td class="py-2 px-2"><select name="product_name[]" class="w-full px-1 py-0 border rounded text-xs"><option value="">请选择</option>{% for pn in product_names %}<option value="{{ pn.name }}">{{ pn.name }}</option>{% endfor %}</select></td>'
+        + '<td class="py-2 px-2 font-mono text-xs"><span>' + newCardNo + '</span><input type="hidden" name="new_card_no[]" value="' + newCardNo + '"></td>'
+        + '<td class="py-2 px-2"><span>' + brand + '</span><input type="hidden" name="brand[]" value="' + brand + '"></td>'
+        + '<td class="py-2 px-2"><span>' + origin + '</span><input type="hidden" name="origin[]" value="' + origin + '"></td>'
+        + '<td class="py-2 px-2"><input type="text" name="spec[]" value="' + spec + '" class="w-full px-1 py-0 border rounded text-xs"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="' + qty + '" min="1" class="w-16 px-1 py-0 border rounded text-xs text-right"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="' + calcWeight + '" min="0" class="w-20 px-1 py-0 border rounded text-xs text-right item-weight"></td>'
+        + '<td class="py-2 px-2"><span>' + warehouse + '</span><input type="hidden" name="warehouse[]" value="' + (warehouse === '-' ? '' : warehouse) + '"></td>'
+        + '<td class="py-2 px-2"><input type="text" name="remark[]" value="" class="w-full px-1 py-0 border rounded text-xs"></td>'
+        + '<td class="py-2 px-2 text-center"><button type="button" onclick="removeProduct(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>';
+    tr.querySelector('select[name="product_name[]"]').value = pn;
+    // Insert before summary row
+    container.insertBefore(tr, document.getElementById('product-summary-row'));
+
+    // Also need raw_card_no and raw_spec as hidden fields
+    document.getElementById('raw-card').insertAdjacentHTML('afterend', '<input type="hidden" name="raw_card_no" id="hidden-raw-card-no" value="' + rawCard + '">');
+    document.getElementById('raw-spec').insertAdjacentHTML('afterend', '<input type="hidden" name="raw_spec" value="' + document.getElementById('raw-spec').getAttribute('data-spec') + '">');
+
+    // Clear inputs
+    document.getElementById('add-product-name').value = '';
+    document.getElementById('add-spec').value = '';
+    document.getElementById('add-qty').value = '1';
+
+    updateRemaining();
+    updateFormSummary();
+}
+
+function removeProduct(btn) {
+    btn.closest('tr').remove();
+    updateRemaining();
+    updateFormSummary();
+}
+
+function recalculateAll() {
+    var rows = document.querySelectorAll('#products-container tr[data-weight]');
+    rows.forEach(function(r) {
+        var pnSelect = r.querySelector('select[name="product_name[]"]');
+        var pn = pnSelect ? pnSelect.value : '';
+        if (calcEnabledNames.indexOf(pn) < 0) return;
+        var specInput = r.querySelector('input[name="spec[]"]');
+        var qtyInput = r.querySelector('input[name="qty[]"]');
+        var weightInput = r.querySelector('input[name="weight[]"]');
+        if (!specInput || !qtyInput || !weightInput) return;
+        var spec = specInput.value.trim();
+        var qty = parseInt(qtyInput.value) || 0;
+        if (!spec || qty <= 0) return;
+        var parts = spec.split('*').map(function(s) { return parseFloat(s.trim()); });
+        if (parts.length !== 3 || !parts.every(function(p) { return p > 0; })) return;
+        var calcWeight = (parts[0] * parts[1] * parts[2] * 7.85 / 1000000000).toFixed(3) * qty;
+        calcWeight = parseFloat(calcWeight.toFixed(3));
+        weightInput.value = calcWeight;
+        r.dataset.weight = calcWeight;
+    });
+    updateRemaining();
+    updateFormSummary();
+}
+
+function updateFormSummary() {
+    var rows = document.querySelectorAll('#products-container tr[data-weight]');
+    var qty = 0, weight = 0;
+    rows.forEach(function(r) {
+        qty += parseInt((r.querySelector('input[name^="qty"]') || {}).value) || 0;
+        weight += parseFloat((r.querySelector('input[name^="weight"]') || {}).value) || 0;
+    });
+    document.getElementById('sum-qty').textContent = qty;
+    document.getElementById('sum-weight').textContent = weight.toFixed(3);
+}
+
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('item-weight')) {
+        var tr = e.target.closest('tr');
+        if (tr && tr.dataset.weight !== undefined) {
+            tr.dataset.weight = parseFloat(e.target.value) || 0;
+        }
+        updateRemaining();
+        updateFormSummary();
+    }
+});
+
+// Override the selectRawMaterial from modal
+document.addEventListener('click', function(e) {
+    var row = e.target.closest('.inv-row');
+    if (row) {
+        selectRawMaterial(row);
+        e.preventDefault();
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

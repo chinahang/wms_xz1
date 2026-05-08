@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% from "components/pagination.html" import render_pagination %}
+
+{% block title %}入库明细 - 钢材进销存{% endblock %}
+
+{% block content %}
+<div class="ledger-heading">
+    <h1 class="ledger-heading__title">入库明细</h1>
+    {% if search_submitted and pagination and pagination.total > 0 %}
+    <div class="ledger-heading__actions">
+    <a href="{{ url_for('purchase.detail_list', export='1', date_start=request.args.get('date_start',''), date_end=request.args.get('date_end',''), supplier_id=request.args.get('supplier_id',''), dept_id=request.args.get('dept_id',''), card_no=request.args.get('card_no',''), spec=request.args.get('spec',''), remark=request.args.get('remark',''), order_remark=request.args.get('order_remark','')) }}" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">导出Excel</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4" data-ledger-query>
+    <form method="GET" action="{{ url_for('purchase.detail_list') }}" class="flex flex-wrap gap-3 items-end">
+        <input type="hidden" name="search_submitted" value="1">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">开始日期</label>
+            <input type="date" name="date_start" value="{{ request.args.get('date_start', default_date_start) }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">结束日期</label>
+            <input type="date" name="date_end" value="{{ request.args.get('date_end', default_date_end) }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="relative customer-search-wrapper">
+            <label class="block text-xs text-slate-500 mb-1">供应商</label>
+            <input type="text" id="supplier-input-pdetail" autocomplete="off" onfocus="filterSupplier('pdetail')"
+                   oninput="filterSupplier('pdetail')" placeholder="搜索供应商..."
+                   class="w-36 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="hidden" name="supplier_id" id="supplier-val-pdetail" value="{{ request.args.get('supplier_id', '') }}">
+            <div id="supplier-dropdown-pdetail" class="hidden absolute top-full left-0 z-10 w-full bg-white border rounded-b-lg shadow-lg max-h-48 overflow-y-auto">
+                <div class="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer" onclick="pickSupplier('', '', 'pdetail')">全部</div>
+                {% for i in suppliers %}
+                <div class="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer s-opt-pdetail" data-id="{{ i.id }}" data-name="{{ i.name }}"
+                     onclick="pickSupplier('{{ i.id }}', '{{ i.name }}', 'pdetail')">{{ i.name }}</div>
+                {% endfor %}
+                <div id="supplier-empty-pdetail" class="px-3 py-2 text-sm text-slate-400 hidden">暂无数据</div>
+            </div>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">卡号</label>
+            <input type="text" name="card_no" value="{{ request.args.get('card_no', '') }}" placeholder="模糊搜索" class="w-28 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">规格</label>
+            <input type="text" name="spec" value="{{ request.args.get('spec', '') }}" placeholder="模糊搜索" class="w-28 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">备注</label>
+            <input type="text" name="remark" value="{{ request.args.get('remark', '') }}" placeholder="模糊搜索" class="w-28 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">主单备注</label>
+            <input type="text" name="order_remark" value="{{ request.args.get('order_remark', '') }}" placeholder="模糊搜索" class="w-28 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">部门</label>
+            <select name="dept_id" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for i in departments %}
+                <option value="{{ i.id }}" {{ 'selected' if request.args.get('dept_id', '')|string == i.id|string }}>{{ i.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">查询</button>
+    </form>
+</div>
+
+<section class="ledger-data-window">
+    <div class="ledger-data-window__header">入库明细数据列表</div>
+    <div class="ledger-data-window__body" style="min-height:200px;">
+    <table class="ledger-table">
+        <thead>
+            <tr>
+                <th draggable="true">单号</th>
+                <th draggable="true">业务日期</th>
+                <th draggable="true">供应商</th>
+                <th draggable="true">销售部门</th>
+                <th draggable="true">卡号</th>
+                <th draggable="true">品名</th>
+                <th draggable="true">牌号</th>
+                <th draggable="true">产地</th>
+                <th draggable="true">规格</th>
+                <th style="text-align:right" draggable="true">件数</th>
+                <th style="text-align:right" draggable="true">吨位</th>
+                <th style="text-align:right" draggable="true">单价</th>
+                <th style="text-align:right" draggable="true">金额</th>
+                <th draggable="true">备注</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if search_submitted %}
+            {% if pagination and pagination.items %}
+                {% for item in pagination.items %}
+                <tr>
+                    <td>{{ item.order.order_no }}</td>
+                    <td>{{ item.order.order_date.strftime('%Y-%m-%d') if item.order.order_date else '-' }}</td>
+                    <td>{{ item.order.supplier.name if item.order.supplier else '-' }}</td>
+                    <td>{{ item.order.dept.name if item.order.dept else '-' }}</td>
+                    <td>{{ item.card_no }}</td>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.brand }}</td>
+                    <td>{{ item.origin }}</td>
+                    <td>{{ item.spec }}</td>
+                    <td style="text-align:right">{{ item.qty }}</td>
+                    <td style="text-align:right">{{ item.weight }}</td>
+                    <td style="text-align:right">{{ item.unit_price or '' }}</td>
+                    <td style="text-align:right">{{ item.amount or '' }}</td>
+                    <td>{{ item.remark or '' }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+            <tr><td colspan="14" class="ledger-empty-row">未查询到数据</td></tr>
+            {% endif %}
+        {% else %}
+        <tr><td colspan="14" class="ledger-empty-row">请设置查询条件后点击查询</td></tr>
+        {% endif %}
+        </tbody>
+        <tfoot>
+        {% if search_submitted and pagination and pagination.items %}
+            <tr>
+                <td colspan="9" style="text-align:right">当前页合计</td>
+                <td style="text-align:right">{{ total_qty_sum }}</td>
+                <td style="text-align:right">{{ '%.3f' % total_weight_sum }}</td>
+                <td></td>
+                <td style="text-align:right">{{ '%.2f' % total_amount_sum }}</td>
+                <td></td>
+            </tr>
+        {% endif %}
+        </tfoot>
+    </table>
+    {% if search_submitted and pagination and pagination.items %}
+    {% if pagination %}{{ render_pagination(pagination, 'purchase.detail_list') }}{% endif %}
+    {% endif %}
+    </div>
+</section>
+
+<script>
+function filterSupplier(suffix) {
+    var input = document.getElementById('supplier-input-' + suffix);
+    var dropdown = document.getElementById('supplier-dropdown-' + suffix);
+    var empty = document.getElementById('supplier-empty-' + suffix);
+    var options = document.querySelectorAll('.s-opt-' + suffix);
+    if (!input || !dropdown) return;
+    var val = (input.value || '').toLowerCase();
+    dropdown.classList.remove('hidden');
+    var anyMatch = false;
+    options.forEach(function(o) {
+        var match = val === '' || o.dataset.name.toLowerCase().indexOf(val) !== -1;
+        o.style.display = match ? '' : 'none';
+        if (match) anyMatch = true;
+    });
+    empty.classList.toggle('hidden', anyMatch);
+}
+function pickSupplier(id, name, suffix) {
+    document.getElementById('supplier-input-' + suffix).value = name;
+    document.getElementById('supplier-val-' + suffix).value = id;
+    document.getElementById('supplier-dropdown-' + suffix).classList.add('hidden');
+}
+document.addEventListener('click', function(e) {
+    var w = document.querySelectorAll('.customer-search-wrapper');
+    var clickedInside = false;
+    w.forEach(function(el) { if (el.contains(e.target)) clickedInside = true; });
+    if (!clickedInside) {
+        document.querySelectorAll('[id^=supplier-dropdown-]').forEach(function(d) { d.classList.add('hidden'); });
+    }
+});
+</script>
+{% endblock %}

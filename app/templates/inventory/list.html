@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% from "components/pagination.html" import render_pagination %}
+
+{% block title %}库存管理 - 钢材进销存{% endblock %}
+
+{% block content %}
+<div class="ledger-heading">
+    <h1 class="ledger-heading__title">库存管理</h1>
+    <div class="ledger-heading__actions">
+        <a href="{{ url_for('inventory.index') }}" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">卡号明细</a>
+        <a href="{{ url_for('inventory.summary') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">汇总视图</a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4" data-ledger-query>
+    <form method="GET" action="{{ url_for('inventory.index') }}" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">卡号</label>
+            <input type="text" name="card_no" value="{{ request.args.get('card_no', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">品名</label>
+            <input type="text" name="product_name" value="{{ request.args.get('product_name', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">牌号</label>
+            <select name="brand" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for b in brands %}
+                <option value="{{ b.name }}" {{ 'selected' if request.args.get('brand', '') == b.name }}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">产地</label>
+            <select name="origin" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for o in origins %}
+                <option value="{{ o.name }}" {{ 'selected' if request.args.get('origin', '') == o.name }}>{{ o.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">部门</label>
+            <select name="dept_id" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {{ 'selected' if request.args.get('dept_id', '')|string == d.id|string }}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">仓库</label>
+            <select name="warehouse_id" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for w in warehouses %}
+                <option value="{{ w.id }}" {{ 'selected' if request.args.get('warehouse_id', '')|string == w.id|string }}>{{ w.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">状态</label>
+            <select name="status" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                <option value="in_stock" {{ 'selected' if request.args.get('status', '') == 'in_stock' }}>在库</option>
+                <option value="consumed" {{ 'selected' if request.args.get('status', '') == 'consumed' }}>已消耗</option>
+                <option value="out" {{ 'selected' if request.args.get('status', '') == 'out' }}>已出库</option>
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">搜索</button>
+    </form>
+</div>
+
+<section class="ledger-data-window">
+    <div class="ledger-data-window__header">库存数据列表</div>
+    <div class="ledger-data-window__body" style="min-height:200px;">
+    <table class="ledger-table">
+        <thead>
+            <tr>
+                <th draggable="true">卡号</th>
+                <th draggable="true">品名</th>
+                <th draggable="true">牌号</th>
+                <th draggable="true">产地</th>
+                <th draggable="true">规格</th>
+                <th draggable="true" style="text-align:right">件数</th>
+                <th draggable="true" style="text-align:right">吨位</th>
+                <th draggable="true">部门</th>
+                <th draggable="true">仓库</th>
+                <th draggable="true" style="text-align:center">状态</th>
+                <th draggable="true">入库时间</th>
+                <th draggable="true">业务时间</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if pagination.items %}
+            {% for item in pagination.items %}
+            <tr>
+                <td>{{ item.card_no }}</td>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.brand }}</td>
+                <td>{{ item.origin }}</td>
+                <td>{{ item.spec }}</td>
+                <td style="text-align:right">{{ item.qty }}</td>
+                <td style="text-align:right">{{ item.weight }}</td>
+                <td>{{ item.dept.name if item.dept else '-' }}</td>
+                <td>{{ item.warehouse.name if item.warehouse else '-' }}</td>
+                <td style="text-align:center">
+                    {% if item.status == 'in_stock' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">在库</span>
+                    {% elif item.status == 'consumed' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">已消耗</span>
+                    {% elif item.status == 'out' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">已出库</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.created_at.strftime('%Y-%m-%d') if item.created_at else '-' }}</td>
+                <td>{{ purchase_dates.get(item.card_no, '') }}</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr><td colspan="12" class="ledger-empty-row">暂无库存记录</td></tr>
+        {% endif %}
+        </tbody>
+        <tfoot>
+        {% if pagination.items %}
+            <tr>
+                <td colspan="5" style="text-align:right">当前页合计</td>
+                <td style="text-align:right">{{ total_qty_sum }}</td>
+                <td style="text-align:right">{{ '%.3f' % total_weight_sum }}</td>
+                <td colspan="5"></td>
+            </tr>
+        {% endif %}
+        </tfoot>
+    </table>
+    {% if pagination %}{{ render_pagination(pagination, 'inventory.index') }}{% endif %}
+    </div>
+</section>
+{% endblock %}

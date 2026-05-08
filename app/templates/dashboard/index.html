@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}工作台 - 钢材进销存{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-slate-800 mb-6">工作台</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="text-slate-500 text-sm">当前库存</div>
+        <div class="text-3xl font-bold text-slate-800">{{ stock_qty }}<span class="text-base font-normal text-slate-500 ml-1">件</span></div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="text-slate-500 text-sm">库存吨位</div>
+        <div class="text-3xl font-bold text-slate-800">{{ "%.2f"|format(stock_weight) }}<span class="text-base font-normal text-slate-500 ml-1">吨</span></div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="text-slate-500 text-sm">今日入库</div>
+        <div class="text-3xl font-bold text-slate-800">{{ today_in_qty }}<span class="text-base font-normal text-slate-500 ml-1">件</span> <span class="text-base text-slate-500">/ {{ "%.2f"|format(today_in_weight) }}吨</span></div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="text-slate-500 text-sm">今日出库</div>
+        <div class="text-3xl font-bold text-slate-800">{{ today_out_qty }}<span class="text-base font-normal text-slate-500 ml-1">件</span> <span class="text-base text-slate-500">/ {{ "%.2f"|format(today_out_weight) }}吨</span></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <a href="{{ url_for('purchase.create') }}" class="block bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 text-center hover:bg-green-100 transition">
+        <div class="text-2xl mb-1">📥</div>
+        <div class="font-medium">新建入库</div>
+    </a>
+    <a href="{{ url_for('process.create') }}" class="block bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-4 text-center hover:bg-amber-100 transition">
+        <div class="text-2xl mb-1">⚙️</div>
+        <div class="font-medium">新建加工</div>
+    </a>
+    <a href="{{ url_for('sales.create') }}" class="block bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-center hover:bg-red-100 transition">
+        <div class="text-2xl mb-1">📤</div>
+        <div class="font-medium">新建出库</div>
+    </a>
+    <a href="{{ url_for('inventory.index') }}" class="block bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-4 text-center hover:bg-blue-100 transition">
+        <div class="text-2xl mb-1">📦</div>
+        <div class="font-medium">查看库存</div>
+    </a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-slate-800">最近操作</h2>
+        <a href="{{ url_for('report.purchase_report') }}" class="text-blue-600 hover:text-blue-800 text-sm">查看全部 →</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-slate-500">
+                    <th class="py-2 px-3 text-left">卡号</th>
+                    <th class="py-2 px-3 text-left">类型</th>
+                    <th class="py-2 px-3 text-left">品名</th>
+                    <th class="py-2 px-3 text-left">规格</th>
+                    <th class="py-2 px-3 text-left">单号</th>
+                    <th class="py-2 px-3 text-left">时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ log.card_no }}</td>
+                    <td class="py-2 px-3">
+                        {% if log.type == 'in' %}
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">入库</span>
+                        {% elif log.type == 'out' %}
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700">出库</span>
+                        {% elif log.type == 'process' %}
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">加工</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">{{ log.type }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{ log.product_name }}</td>
+                    <td class="py-2 px-3">{{ log.spec }}</td>
+                    <td class="py-2 px-3">{{ log.order_no }}</td>
+                    <td class="py-2 px-3 text-slate-500">{{ log.created_at.strftime('%Y-%m-%d %H:%M') if log.created_at else '' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="py-4 text-center text-slate-400">暂无操作记录</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

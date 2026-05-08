@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台账系统基础模板</title>
+    <style>
+        :root {
+            --primary-color: #1890ff;
+            --primary-hover: #40a9ff;
+            --border-black: #000000;     /* 加粗黑边框 */
+            --border-light: #333333;     /* 细黑边框 */
+            --bg-light: #f5f7fa;
+            --bg-white: #ffffff;
+            --text-main: #000000;
+            --text-secondary: #333333;
+            --highlight-yellow: #fff200; /* 点击行高亮黄色 */
+            --spacing-base: 8px;
+            --header-height: 60px;
+            --query-height: auto;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #e9e9e9;
+        }
+
+        /* 顶部标题 */
+        .ledger-header {
+            width: 100%;
+            height: var(--header-height);
+            padding: 0 20px;
+            background: #0052d9;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* 查询区域 */
+        .ledger-query {
+            padding: 16px 20px;
+            background: #fff;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .query-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .query-item label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .query-item input {
+            padding: 6px 10px;
+            border: 1px solid #000;
+            outline: none;
+        }
+
+        .btn {
+            padding: 6px 16px;
+            border: 1px solid #000;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: #fff;
+        }
+
+        .btn-default {
+            background: #fff;
+            color: #000;
+        }
+
+        /* ===================== 核心：子窗口 加粗黑色外边框 ===================== */
+        .ledger-data-window {
+            width: calc(100vw - 40px);
+            height: calc(100vh - var(--header-height) - var(--query-height) - 40px);
+            margin: 20px;
+            background: #fff;
+            border: 3px solid var(--border-black); /* 加粗黑边框 */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .data-window__header {
+            padding: 12px 16px;
+            background: #f5f7fa;
+            border-bottom: 2px solid #000;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* 表格滚动区域 */
+        .data-window__table-wrapper {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            border-top: 1px solid #000;
+        }
+
+        /* ===================== 表格：细黑线边框 ===================== */
+        .ledger-table {
+            width: 100%;
+            min-width: max-content;
+            border-collapse: collapse;
+            table-layout: fixed;
+            height: 100%;
+        }
+
+        .ledger-table th,
+        .ledger-table td {
+            border: 1px solid var(--border-light); /* 细黑边框 */
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        /* 表头 */
+        .ledger-table thead {
+            position: sticky;
+            top: 0;
+            background: #eeeeee;
+            z-index: 100;
+            font-weight: bold;
+        }
+
+        /* 统计行样式 */
+        .ledger-table tfoot {
+            background: #e9e9e9;
+            font-weight: bold;
+            position: sticky;
+            bottom: 0; /* 统计行固定在表格底部 */
+            z-index: 90;
+        }
+
+        .ledger-table tfoot td {
+            border: 1px solid var(--border-light);
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: #e9e9e9;
+        }
+
+        /* 可排序 */
+        .sortable {
+            cursor: pointer;
+        }
+
+        /* 可拖拽 */
+        th[draggable="true"] {
+            cursor: move;
+        }
+
+        /* ===================== 鼠标点击 → 整行黄色高亮 ===================== */
+        .ledger-table tbody tr.active {
+            background-color: var(--highlight-yellow) !important;
+        }
+
+        .ledger-table tbody tr:hover {
+            background: #f0f0f0;
+        }
+
+        /* 空数据提示 */
+        .data-window__empty {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #666;
+            z-index: 10;
+        }
+
+        .data-window__loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 200;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="ledger-header">企业台账管理系统</header>
+
+    <section class="ledger-query">
+        <div class="query-item">
+            <label>单据编号</label>
+            <input type="text" id="orderNo" placeholder="请输入">
+        </div>
+        <div class="query-item">
+            <label>创建日期</label>
+            <input type="date" id="createTime">
+        </div>
+        <button class="btn btn-primary" id="queryBtn">查询</button>
+        <button class="btn btn-default" id="resetBtn">重置</button>
+    </section>
+
+    <!-- 数据子窗口 -->
+    <section class="ledger-data-window">
+        <div class="data-window__header">台账数据列表</div>
+        <div class="data-window__table-wrapper">
+            <table class="ledger-table" id="ledgerTable">
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+                <tfoot id="tableFoot"></tfoot> <!-- 统计行容器 -->
+            </table>
+            <div class="data-window__empty" id="emptyTip">请点击查询按钮获取数据</div>
+        </div>
+        <div class="data-window__loading hidden" id="loadingTip">加载中...</div>
+    </section>
+
+    <script>
+        const $ = selector => document.querySelector(selector);
+        const $$ = selector => document.querySelectorAll(selector);
+
+        window.ledgerConfig = {
+            columns: [
+                { field: 'index', title: '序号', width: '80px', sortable: false, draggable: false },
+                { field: 'orderNo', title: '单据编号', width: '180px', sortable: true, draggable: true },
+                { field: 'createTime', title: '创建日期', width: '150px', sortable: true, draggable: true },
+                { field: 'productName', title: '产品名称', width: '200px', sortable: true, draggable: true },
+                { field: 'spec', title: '规格型号', width: '150px', sortable: true, draggable: true },
+                { field: 'quantity', title: '数量', width: '100px', sortable: true, draggable: true },
+                { field: 'unit', title: '单位', width: '80px', sortable: false, draggable: true },
+                { field: 'amount', title: '金额', width: '120px', sortable: true, draggable: true },
+                { field: 'operator', title: '经办人', width: '120px', sortable: true, draggable: true },
+                { field: 'remark', title: '备注', width: '200px', sortable: false, draggable: true },
+                { field: 'action', title: '操作', width: '180px', sortable: false, draggable: false }
+            ],
+            tableData: [],
+            sortState: { field: '', order: 'asc' },
+            dragState: { startIndex: -1, endIndex: -1 },
+
+            fetchData: async function () {
+                await new Promise(r => setTimeout(r, 600));
+                let data = [];
+                for (let i = 1; i <= 50; i++) {
+                    data.push({
+                        index: i,
+                        orderNo: 'GD' + Date.now() + i,
+                        createTime: '2025-01-' + String(i % 30).padStart(2, '0'),
+                        productName: '产品' + i,
+                        spec: '100*200',
+                        quantity: i * 10,
+                        unit: '个',
+                        amount: (i * 100).toFixed(2),
+                        operator: '操作员' + i % 5,
+                        remark: i % 5 == 0 ? '重要' : '',
+                        action: '查看 编辑 删除'
+                    });
+                }
+                this.tableData = data;
+                return data;
+            }
+        };
+
+        // 初始化
+        window.onload = () => {
+            renderTableHead();
+            bindEvents();
+            calcQueryHeight();
+        };
+
+        function calcQueryHeight() {
+            const h = document.querySelector('.ledger-query').offsetHeight;
+            document.documentElement.style.setProperty('--query-height', h + 'px');
+        }
+
+        // 渲染表头
+        function renderTableHead() {
+            const head = $('#tableHead');
+            let html = '<tr>';
+            ledgerConfig.columns.forEach((col, idx) => {
+                const drag = col.draggable ? 'draggable="true"' : '';
+                const sortCls = col.sortable ? 'sortable' : '';
+                html += `<th width="${col.width}" ${drag} class="${sortCls}" data-index="${idx}" data-field="${col.field}">${col.title}</th>`;
+            });
+            html += '</tr>';
+            head.innerHTML = html;
+            initDrag();
+            initSort();
+        }
+
+        // 计算统计数据（数量总和、金额总和）
+        function calculateSummary() {
+            const data = ledgerConfig.tableData;
+            if (!data || data.length === 0) return { totalQuantity: 0, totalAmount: 0 };
+            
+            let totalQuantity = 0;
+            let totalAmount = 0;
+            
+            data.forEach(row => {
+                // 转换为数字计算，防止非数字值
+                totalQuantity += Number(row.quantity) || 0;
+                totalAmount += Number(row.amount) || 0;
+            });
+            
+            return {
+                totalQuantity,
+                totalAmount: totalAmount.toFixed(2) // 金额保留两位小数
+            };
+        }
+
+        // 渲染统计行
+        function renderSummaryRow() {
+            const foot = $('#tableFoot');
+            const data = ledgerConfig.tableData;
+            if (!data || data.length === 0) {
+                foot.innerHTML = '';
+                return;
+            }
+
+            const summary = calculateSummary();
+            let html = '<tr>';
+            ledgerConfig.columns.forEach(col => {
+                let cellText = '';
+                switch (col.field) {
+                    case 'index':
+                        cellText = '合计'; // 序号列显示“合计”
+                        break;
+                    case 'quantity':
+                        cellText = summary.totalQuantity; // 数量列显示总和
+                        break;
+                    case 'amount':
+                        cellText = summary.totalAmount; // 金额列显示总和
+                        break;
+                    default:
+                        cellText = '-'; // 其他列显示占位符
+                }
+                html += `<td>${cellText}</td>`;
+            });
+            html += '</tr>';
+            foot.innerHTML = html;
+        }
+
+        // 渲染表体
+        function renderTableBody() {
+            const body = $('#tableBody');
+            const data = ledgerConfig.tableData;
+            if (!data || data.length === 0) {
+                body.innerHTML = '';
+                renderSummaryRow(); // 清空统计行
+                $('#emptyTip').classList.remove('hidden');
+                return;
+            }
+            $('#emptyTip').classList.add('hidden');
+
+            let html = '';
+            data.forEach(row => {
+                html += '<tr>';
+                ledgerConfig.columns.forEach(col => {
+                    html += `<td>${row[col.field] || ''}</td>`;
+                });
+                html += '</tr>';
+            });
+            body.innerHTML = html;
+
+            // 渲染统计行
+            renderSummaryRow();
+
+            // 绑定点击高亮
+            $$('#tableBody tr').forEach(tr => {
+                tr.onclick = () => {
+                    $$('#tableBody tr').forEach(t => t.classList.remove('active'));
+                    tr.classList.add('active');
+                };
+            });
+        }
+
+        // 查询
+        $('#queryBtn').onclick = async () => {
+            $('#loadingTip').classList.remove('hidden');
+            await ledgerConfig.fetchData();
+            renderTableBody();
+            $('#loadingTip').classList.add('hidden');
+        };
+
+        // 重置
+        $('#resetBtn').onclick = () => {
+            ledgerConfig.tableData = [];
+            renderTableBody();
+            $('#emptyTip').innerText = '请点击查询按钮获取数据';
+        };
+
+        // 拖拽
+        function initDrag() {
+            $$('th[draggable="true"]').forEach(th => {
+                th.ondragstart = e => {
+                    ledgerConfig.dragState.startIndex = +th.dataset.index;
+                };
+                th.ondragover = e => e.preventDefault();
+                th.ondrop = e => {
+                    e.preventDefault();
+                    const i1 = ledgerConfig.dragState.startIndex;
+                    const i2 = +th.dataset.index;
+                    if (i1 === i2) return;
+                    [ledgerConfig.columns[i1], ledgerConfig.columns[i2]] = [ledgerConfig.columns[i2], ledgerConfig.columns[i1]];
+                    renderTableHead();
+                    renderTableBody(); // 重新渲染表体和统计行
+                };
+            });
+        }
+
+        // 排序
+        function initSort() {
+            $$('.sortable').forEach(th => {
+                th.onclick = () => {
+                    const field = th.dataset.field;
+                    const st = ledgerConfig.sortState;
+                    st.order = st.field === field ? (st.order === 'asc' ? 'desc' : 'asc') : 'asc';
+                    st.field = field;
+                    ledgerConfig.tableData.sort((a, b) => {
+                        return st.order === 'asc'
+                            ? String(a[field]).localeCompare(String(b[field]))
+                            : String(b[field]).localeCompare(String(a[field]));
+                    });
+                    renderTableBody(); // 重新渲染表体和统计行
+                };
+            });
+        }
+
+        function bindEvents() {
+            window.addEventListener('resize', calcQueryHeight);
+        }
+    </script>
+</body>
+</html>

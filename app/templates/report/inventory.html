@@ -1,0 +1,87 @@
+﻿{% extends "base.html" %}
+{% from "components/pagination.html" import render_pagination %}
+
+{% block title %}库存汇总报表 - 钢材进销存{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">库存汇总报表</h1>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+    <div class="flex gap-2 mb-4">
+        <a href="{{ url_for('report.purchase_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">入库报表</a>
+        <a href="{{ url_for('report.sales_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">出库报表</a>
+        <a href="{{ url_for('report.inventory_report') }}" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">库存报表</a>
+        <a href="{{ url_for('report.process_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">加工报表</a>
+        <a href="{{ url_for('report.custom_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">自定义查询</a>
+    </div>
+    <form method="GET" action="{{ url_for('report.inventory_report') }}" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">品名</label>
+            <input type="text" name="product_name" value="{{ request.args.get('product_name', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">牌号</label>
+            <select name="brand" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for b in brands %}
+                <option value="{{ b.name }}" {{ 'selected' if request.args.get('brand', '') == b.name }}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">产地</label>
+            <select name="origin" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for o in origins %}
+                <option value="{{ o.name }}" {{ 'selected' if request.args.get('origin', '') == o.name }}>{{ o.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">部门</label>
+            <select name="dept_id" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {{ 'selected' if request.args.get('dept_id', '')|string == d.id|string }}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">搜索</button>
+        <a href="{{ url_for('report.inventory_report') }}?{{ request.args|urlencode }}&export=excel" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">导出Excel</a>
+    </form>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-4">
+    {% if pagination.items %}
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b text-slate-500">
+                <th class="py-2 px-3 text-left">品名</th>
+                <th class="py-2 px-3 text-left">牌号</th>
+                <th class="py-2 px-3 text-left">产地</th>
+                <th class="py-2 px-3 text-right">卡号数量</th>
+                <th class="py-2 px-3 text-right">总件数</th>
+                <th class="py-2 px-3 text-right">总吨位</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in pagination.items %}
+            <tr class="border-b hover:bg-slate-50">
+                <td class="py-2 px-3">{{ r.product_name }}</td>
+                <td class="py-2 px-3">{{ r.brand }}</td>
+                <td class="py-2 px-3">{{ r.origin }}</td>
+                <td class="py-2 px-3 text-right">{{ r.count }}</td>
+                <td class="py-2 px-3 text-right">{{ r.total_qty or 0 }}</td>
+                <td class="py-2 px-3 text-right">{{ r.total_weight or 0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {{ render_pagination(pagination, 'report.inventory_report') }}
+    {% else %}
+    <div class="text-center text-slate-400 py-8">暂无数据</div>
+    {% endif %}
+</div>
+{% endblock %}

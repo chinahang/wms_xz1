@@ -1,0 +1,119 @@
+<h2>业务流程设计</h2>
+<p class="subtitle">采购入库 → 加工管理 → 销售出库 的核心操作路径</p>
+
+<div class="section">
+  <h3>📥 采购入库流程</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="padding:1rem; font-size:0.85rem;">
+      <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+        <div style="background:#22c55e; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">1.新建入库单</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#e2e8f0; padding:0.5rem 1rem; border-radius:2rem;">填写供应商、销售部门、主单备注</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#22c55e; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">2.录入明细</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#e2e8f0; padding:0.5rem 1rem; border-radius:2rem;">逐行录入卡号、品名、牌号、产地、规格、件数、吨位、备注</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#22c55e; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">3.保存</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#e2e8f0; padding:0.5rem 1rem; border-radius:2rem;">自动汇总总件数/总吨位 → 同步创建库存记录 → 写入流水</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1.5rem;">
+  <h3>⚙️ 加工管理流程（一对多）</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="padding:1rem; font-size:0.85rem;">
+      <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+        <div style="background:#f59e0b; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">1.新建加工单</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#f59e0b; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">2.选原料卡号</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#f59e0b; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">3.录入产成品</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#f59e0b; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">4.保存</div>
+      </div>
+      <div style="background:#fffbeb; border-radius:0.5rem; padding:1rem; border:1px solid #fde68a;">
+        <div style="font-weight:bold; margin-bottom:0.5rem;">一对多加工示例：</div>
+        <div style="display:flex; gap:1rem; align-items:flex-start;">
+          <div style="background:white; border:2px solid #f59e0b; border-radius:0.5rem; padding:0.75rem; min-width:160px;">
+            <div style="font-weight:bold; color:#f59e0b;">原料卡号</div>
+            <div>KH-2026001</div>
+            <div>品名: 热轧卷板</div>
+            <div>规格: 6.0×1500</div>
+            <div>吨位: 28.5吨</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5rem; flex:1;">
+            <div style="background:white; border:2px solid #22c55e; border-radius:0.5rem; padding:0.75rem;">
+              <div style="font-weight:bold; color:#22c55e;">产成品① 新卡号</div>
+              <div>KH-2026002</div>
+              <div>品名/牌号/产地/规格 手工录入</div>
+              <div>吨位: 15.2吨</div>
+            </div>
+            <div style="background:white; border:2px solid #22c55e; border-radius:0.5rem; padding:0.75rem;">
+              <div style="font-weight:bold; color:#22c55e;">产成品② 新卡号</div>
+              <div>KH-2026003</div>
+              <div>品名/牌号/产地/规格 手工录入</div>
+              <div>吨位: 11.8吨</div>
+            </div>
+          </div>
+          <div style="background:white; border:2px solid #ef4444; border-radius:0.5rem; padding:0.75rem; min-width:120px;">
+            <div style="font-weight:bold; color:#ef4444;">损耗</div>
+            <div>手工录入</div>
+            <div>1.5吨</div>
+          </div>
+        </div>
+        <div style="margin-top:0.75rem; color:#92400e; font-size:0.8rem;">保存后：原料卡号标记已消耗 → 产成品卡号创建库存 → 写入流水</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1.5rem;">
+  <h3>📤 销售出库流程</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="padding:1rem; font-size:0.85rem;">
+      <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+        <div style="background:#ef4444; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">1.新建出库单</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#e2e8f0; padding:0.5rem 1rem; border-radius:2rem;">填写客户、销售部门</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#ef4444; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">2.选卡号出库</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#e2e8f0; padding:0.5rem 1rem; border-radius:2rem;">从库存中搜索/选择卡号，自动带入品名/规格等信息，可修改出库吨位</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#ef4444; color:white; padding:0.5rem 1rem; border-radius:2rem; font-weight:bold;">3.保存</div>
+        <div style="color:#94a3b8;">→</div>
+        <div style="background:#e2e8f0; padding:0.5rem 1rem; border-radius:2rem;">汇总总件数/总吨位 → 库存标记已出库 → 写入流水</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1.5rem;">
+  <h3>📈 报表中心</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+    <div style="background:white; border-radius:0.5rem; padding:1rem; border-left:4px solid #22c55e;">
+      <div style="font-weight:bold;">入库明细报表</div>
+      <div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">按日期/供应商/品名/部门筛选，支持导出Excel</div>
+    </div>
+    <div style="background:white; border-radius:0.5rem; padding:1rem; border-left:4px solid #ef4444;">
+      <div style="font-weight:bold;">出库明细报表</div>
+      <div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">按日期/客户/品名/部门筛选，支持导出Excel</div>
+    </div>
+    <div style="background:white; border-radius:0.5rem; padding:1rem; border-left:4px solid #8b5cf6;">
+      <div style="font-weight:bold;">库存汇总报表</div>
+      <div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">按品名/牌号/产地/部门汇总件数吨位，支持导出Excel</div>
+    </div>
+    <div style="background:white; border-radius:0.5rem; padding:1rem; border-left:4px solid #f59e0b;">
+      <div style="font-weight:bold;">加工损耗报表</div>
+      <div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">按日期/品名统计加工量与损耗率，支持导出Excel</div>
+    </div>
+    <div style="background:white; border-radius:0.5rem; padding:1rem; border-left:4px solid #3b82f6; grid-column:span 2;">
+      <div style="font-weight:bold;">自定义查询</div>
+      <div style="font-size:0.85rem; color:#64748b; margin-top:0.25rem;">按卡号追踪全生命周期（入库→加工→出库），日/月趋势统计图表</div>
+    </div>
+  </div>
+</div>

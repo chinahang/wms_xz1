@@ -1,0 +1,13 @@
+{% for inv in results %}
+<div class="px-3 py-2 hover:bg-slate-100 cursor-pointer border-b text-sm"
+     onclick="selectCard(this)"
+     data-card-no="{{ inv.card_no }}"
+     data-product-name="{{ inv.product_name }}"
+     data-brand="{{ inv.brand }}"
+     data-origin="{{ inv.origin }}"
+     data-spec="{{ inv.spec }}"
+     data-qty="{{ inv.qty }}"
+     data-weight="{{ inv.weight }}">
+    {{ inv.card_no }} | {{ inv.product_name }} | {{ inv.brand }} | {{ inv.spec }} | {{ inv.weight }}吨
+</div>
+{% endfor %}

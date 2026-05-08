@@ -1,0 +1,91 @@
+﻿{% extends "base.html" %}
+{% from "components/pagination.html" import render_pagination %}
+
+{% block title %}加工损耗报表 - 钢材进销存{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">加工损耗报表</h1>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+    <div class="flex gap-2 mb-4">
+        <a href="{{ url_for('report.purchase_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">入库报表</a>
+        <a href="{{ url_for('report.sales_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">出库报表</a>
+        <a href="{{ url_for('report.inventory_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">库存报表</a>
+        <a href="{{ url_for('report.process_report') }}" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">加工报表</a>
+        <a href="{{ url_for('report.custom_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">自定义查询</a>
+    </div>
+    <form method="GET" action="{{ url_for('report.process_report') }}" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">开始日期</label>
+            <input type="date" name="date_start" value="{{ request.args.get('date_start', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">结束日期</label>
+            <input type="date" name="date_end" value="{{ request.args.get('date_end', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">品名</label>
+            <input type="text" name="product_name" value="{{ request.args.get('product_name', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">搜索</button>
+        <a href="{{ url_for('report.process_report') }}?{{ request.args|urlencode }}&export=excel" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">导出Excel</a>
+    </form>
+</div>
+
+<div class="grid grid-cols-4 gap-4 mb-4">
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+        <div class="text-sm text-slate-500">总投入吨位</div>
+        <div class="text-2xl font-bold text-slate-800 mt-1">{{ '%.3f'|format(total_input) }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+        <div class="text-sm text-slate-500">总产出吨位</div>
+        <div class="text-2xl font-bold text-slate-800 mt-1">{{ '%.3f'|format(total_output) }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+        <div class="text-sm text-slate-500">总损耗</div>
+        <div class="text-2xl font-bold text-amber-600 mt-1">{{ '%.3f'|format(total_loss) }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+        <div class="text-sm text-slate-500">平均损耗率</div>
+        <div class="text-2xl font-bold text-red-600 mt-1">{{ '%.2f'|format(loss_rate * 100) }}%</div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-4">
+    {% if pagination.items %}
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b text-slate-500">
+                <th class="py-2 px-3 text-left">日期</th>
+                <th class="py-2 px-3 text-left">单号</th>
+                <th class="py-2 px-3 text-left">原料卡号</th>
+                <th class="py-2 px-3 text-left">原卷规格</th>
+                <th class="py-2 px-3 text-left">新卡号</th>
+                <th class="py-2 px-3 text-left">品名</th>
+                <th class="py-2 px-3 text-right">产出吨位</th>
+                <th class="py-2 px-3 text-right">损耗</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detail, order in pagination.items %}
+            <tr class="border-b hover:bg-slate-50">
+                <td class="py-2 px-3">{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '' }}</td>
+                <td class="py-2 px-3">{{ order.order_no }}</td>
+                <td class="py-2 px-3">{{ detail.raw_card_no }}</td>
+                <td class="py-2 px-3">{{ detail.raw_spec }}</td>
+                <td class="py-2 px-3">{{ detail.new_card_no }}</td>
+                <td class="py-2 px-3">{{ detail.product_name }}</td>
+                <td class="py-2 px-3 text-right">{{ detail.weight }}</td>
+                <td class="py-2 px-3 text-right text-amber-600">{{ detail.loss_weight }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {{ render_pagination(pagination, 'report.process_report') }}
+    {% else %}
+    <div class="text-center text-slate-400 py-8">暂无数据</div>
+    {% endif %}
+</div>
+{% endblock %}

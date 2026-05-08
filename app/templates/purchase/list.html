@@ -1,0 +1,158 @@
+﻿{% extends "base.html" %}
+{% from "components/pagination.html" import render_pagination %}
+
+{% block title %}采购入库 - 钢材进销存{% endblock %}
+
+{% block content %}
+<div class="ledger-heading">
+    <h1 class="ledger-heading__title">采购入库</h1>
+    <div class="ledger-heading__actions">
+        <a href="{{ url_for('purchase.download_template') }}" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">下载模板</a>
+        <label class="px-4 py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 cursor-pointer">
+            Excel导入
+            <input type="file" name="file" accept=".xlsx,.xls" form="excel-import-form" class="hidden">
+        </label>
+        <a href="{{ url_for('purchase.create') }}" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">新建入库单</a>
+    </div>
+</div>
+
+<form id="excel-import-form" method="POST" action="{{ url_for('purchase.import_excel') }}" enctype="multipart/form-data" class="hidden"></form>
+
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4" data-ledger-query>
+    <form method="GET" action="{{ url_for('purchase.index') }}" class="flex flex-wrap gap-3 items-end">
+        <input type="hidden" name="search_submitted" value="1">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">开始日期</label>
+            <input type="date" name="date_start" value="{{ request.args.get('date_start', default_date_start) }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">结束日期</label>
+            <input type="date" name="date_end" value="{{ request.args.get('date_end', default_date_end) }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="relative customer-search-wrapper">
+            <label class="block text-xs text-slate-500 mb-1">供应商</label>
+            <input type="text" id="supplier-input-purchase" autocomplete="off" onfocus="filterSupplier('purchase')"
+                   oninput="filterSupplier('purchase')" placeholder="搜索供应商..."
+                   class="w-36 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="hidden" name="supplier_id" id="supplier-val-purchase" value="{{ request.args.get('supplier_id', '') }}">
+            <div id="supplier-dropdown-purchase" class="hidden absolute top-full left-0 z-10 w-full bg-white border rounded-b-lg shadow-lg max-h-48 overflow-y-auto">
+                <div class="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer" onclick="pickSupplier('', '', 'purchase')">全部</div>
+                {% for s in suppliers %}
+                <div class="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer s-opt-purchase" data-id="{{ s.id }}" data-name="{{ s.name }}"
+                     onclick="pickSupplier('{{ s.id }}', '{{ s.name }}', 'purchase')">{{ s.name }}</div>
+                {% endfor %}
+                <div id="supplier-empty-purchase" class="px-3 py-2 text-sm text-slate-400 hidden">暂无数据</div>
+            </div>
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">主单备注</label>
+            <input type="text" name="remark" value="{{ request.args.get('remark', '') }}" placeholder="模糊搜索" class="w-32 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">部门</label>
+            <select name="dept_id" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">全部</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {{ 'selected' if request.args.get('dept_id', '')|string == d.id|string }}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">搜索</button>
+    </form>
+</div>
+
+<section class="ledger-data-window">
+    <div class="ledger-data-window__header">采购入库数据列表</div>
+    <div class="ledger-data-window__body" style="min-height:200px;">
+    <table class="ledger-table">
+        <thead>
+            <tr>
+                <th draggable="true">单号</th>
+                <th draggable="true">供应商</th>
+                <th draggable="true">销售部门</th>
+                <th draggable="true" style="text-align:right">总件数</th>
+                <th draggable="true" style="text-align:right">总吨位</th>
+                <th draggable="true" style="text-align:right">总金额</th>
+                <th draggable="true">业务日期</th>
+                <th draggable="true">主单备注</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if pagination and pagination.items %}
+            {% for order in pagination.items %}
+            <tr data-order-id="{{ order.id }}" data-order-type="purchase">
+                <td>{{ order.order_no }}</td>
+                <td>{{ order.supplier.name if order.supplier else '-' }}</td>
+                <td>{{ order.dept.name if order.dept else '-' }}</td>
+                <td style="text-align:right">{{ order.total_qty }}</td>
+                <td style="text-align:right">{{ order.total_weight }}</td>
+                <td style="text-align:right">{{ '%.2f' % order.total_amount if order.total_amount else '' }}</td>
+                <td>{{ order.order_date.strftime('%Y-%m-%d') if order.order_date else '-' }}</td>
+                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ order.remark or '' }}</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr><td colspan="8" class="ledger-empty-row">{{ '暂无入库单' if pagination is not none else '请设置查询条件后点击搜索' }}</td></tr>
+        {% endif %}
+        </tbody>
+        <tfoot>
+        {% if pagination and pagination.items %}
+            <tr>
+                <td colspan="2" style="text-align:right">当前页合计</td>
+                <td style="text-align:right">{{ total_qty_sum }}</td>
+                <td style="text-align:right">{{ '%.3f' % total_weight_sum }}</td>
+                <td style="text-align:right">{{ '%.2f' % total_amount_sum }}</td>
+                <td></td><td></td>
+            </tr>
+        {% endif %}
+        </tfoot>
+    </table>
+    {% if pagination %}{{ render_pagination(pagination, 'purchase.index') }}{% endif %}
+    </div>
+    {% if pagination and pagination.items %}
+    <div class="ledger-actions-bar">
+        <button class="btn-action" onclick="doLedgerAction('detail')">详情</button>
+        <button class="btn-action" onclick="doLedgerAction('edit')">编辑</button>
+        <button class="btn-action" style="color:#dc2626" onclick="doLedgerAction('delete')">删除</button>
+    </div>
+    {% endif %}
+</section>
+
+<script>
+document.querySelector('input[name="file"]').addEventListener('change', function() {
+    if (this.files.length > 0) {
+        document.getElementById('excel-import-form').submit();
+    }
+});
+
+function filterSupplier(suffix) {
+    var input = document.getElementById('supplier-input-' + suffix);
+    var dropdown = document.getElementById('supplier-dropdown-' + suffix);
+    var empty = document.getElementById('supplier-empty-' + suffix);
+    var options = document.querySelectorAll('.s-opt-' + suffix);
+    if (!input || !dropdown) return;
+    var val = (input.value || '').toLowerCase();
+    dropdown.classList.remove('hidden');
+    var anyMatch = false;
+    options.forEach(function(o) {
+        var match = val === '' || o.dataset.name.toLowerCase().indexOf(val) !== -1;
+        o.style.display = match ? '' : 'none';
+        if (match) anyMatch = true;
+    });
+    empty.classList.toggle('hidden', anyMatch);
+}
+function pickSupplier(id, name, suffix) {
+    document.getElementById('supplier-input-' + suffix).value = name;
+    document.getElementById('supplier-val-' + suffix).value = id;
+    document.getElementById('supplier-dropdown-' + suffix).classList.add('hidden');
+}
+document.addEventListener('click', function(e) {
+    var w = document.querySelectorAll('.customer-search-wrapper');
+    var clickedInside = false;
+    w.forEach(function(el) { if (el.contains(e.target)) clickedInside = true; });
+    if (!clickedInside) {
+        document.querySelectorAll('[id^=supplier-dropdown-]').forEach(function(d) { d.classList.add('hidden'); });
+    }
+});
+</script>
+{% endblock %}

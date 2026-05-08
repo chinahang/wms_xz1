@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}基础数据管理 - 钢材进销存{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-slate-800 mb-6">基础数据管理</h1>
+
+<div class="border-b flex gap-4 mb-6">
+    <button onclick="switchTab('product_name')" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ 'border-blue-500 text-blue-600' if active_tab == 'product_name' else 'border-transparent text-slate-500 hover:text-slate-700' }}" data-tab="product_name">品名</button>
+    <button onclick="switchTab('brand')" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ 'border-blue-500 text-blue-600' if active_tab == 'brand' else 'border-transparent text-slate-500 hover:text-slate-700' }}" data-tab="brand">牌号</button>
+    <button onclick="switchTab('origin')" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ 'border-blue-500 text-blue-600' if active_tab == 'origin' else 'border-transparent text-slate-500 hover:text-slate-700' }}" data-tab="origin">产地</button>
+    <button onclick="switchTab('department')" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ 'border-blue-500 text-blue-600' if active_tab == 'department' else 'border-transparent text-slate-500 hover:text-slate-700' }}" data-tab="department">部门</button>
+    <button onclick="switchTab('unit')" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ 'border-blue-500 text-blue-600' if active_tab == 'unit' else 'border-transparent text-slate-500 hover:text-slate-700' }}" data-tab="unit">单位名称</button>
+    <button onclick="switchTab('calc_spec')" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ 'border-blue-500 text-blue-600' if active_tab == 'calc_spec' else 'border-transparent text-slate-500 hover:text-slate-700' }}" data-tab="calc_spec">理算设置</button>
+    <button onclick="switchTab('warehouse')" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ 'border-blue-500 text-blue-600' if active_tab == 'warehouse' else 'border-transparent text-slate-500 hover:text-slate-700' }}" data-tab="warehouse">仓库</button>
+</div>
+
+<div id="tab-product_name" class="tab-content {{ '' if active_tab == 'product_name' else 'hidden' }}">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <table class="w-full text-sm mb-4">
+            <thead><tr class="border-b text-slate-500"><th class="py-2 px-3 text-left">ID</th><th class="py-2 px-3 text-left">品名</th><th class="py-2 px-3 text-right">操作</th></tr></thead>
+            <tbody>
+                {% for item in product_names %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ item.id }}</td>
+                    <td class="py-2 px-3">{{ item.name }}</td>
+                    <td class="py-2 px-3 text-right">
+                        <form method="POST" action="{{ url_for('base_data.product_name_delete', id=item.id) }}" style="display:inline" onsubmit="return confirm('确定删除？')">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-xs text-slate-400 mb-2">共 {{ product_names|length }} 条</div>
+        <form method="POST" action="{{ url_for('base_data.product_name_add') }}" class="flex gap-2">
+            <input type="text" name="name" placeholder="输入品名" required class="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">添加</button>
+        </form>
+    </div>
+</div>
+
+<div id="tab-brand" class="tab-content {{ '' if active_tab == 'brand' else 'hidden' }}">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <table class="w-full text-sm mb-4">
+            <thead><tr class="border-b text-slate-500"><th class="py-2 px-3 text-left">ID</th><th class="py-2 px-3 text-left">牌号</th><th class="py-2 px-3 text-right">操作</th></tr></thead>
+            <tbody>
+                {% for item in brands %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ item.id }}</td>
+                    <td class="py-2 px-3">{{ item.name }}</td>
+                    <td class="py-2 px-3 text-right">
+                        <form method="POST" action="{{ url_for('base_data.brand_delete', id=item.id) }}" style="display:inline" onsubmit="return confirm('确定删除？')">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-xs text-slate-400 mb-2">共 {{ brands|length }} 条</div>
+        <form method="POST" action="{{ url_for('base_data.brand_add') }}" class="flex gap-2">
+            <input type="text" name="name" placeholder="输入牌号" required class="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">添加</button>
+        </form>
+    </div>
+</div>
+
+<div id="tab-origin" class="tab-content {{ '' if active_tab == 'origin' else 'hidden' }}">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <table class="w-full text-sm mb-4">
+            <thead><tr class="border-b text-slate-500"><th class="py-2 px-3 text-left">ID</th><th class="py-2 px-3 text-left">产地</th><th class="py-2 px-3 text-right">操作</th></tr></thead>
+            <tbody>
+                {% for item in origins %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ item.id }}</td>
+                    <td class="py-2 px-3">{{ item.name }}</td>
+                    <td class="py-2 px-3 text-right">
+                        <form method="POST" action="{{ url_for('base_data.origin_delete', id=item.id) }}" style="display:inline" onsubmit="return confirm('确定删除？')">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-xs text-slate-400 mb-2">共 {{ origins|length }} 条</div>
+        <form method="POST" action="{{ url_for('base_data.origin_add') }}" class="flex gap-2">
+            <input type="text" name="name" placeholder="输入产地" required class="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">添加</button>
+        </form>
+    </div>
+</div>
+
+<div id="tab-department" class="tab-content {{ '' if active_tab == 'department' else 'hidden' }}">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <table class="w-full text-sm mb-4">
+            <thead><tr class="border-b text-slate-500"><th class="py-2 px-3 text-left">ID</th><th class="py-2 px-3 text-left">部门</th><th class="py-2 px-3 text-right">操作</th></tr></thead>
+            <tbody>
+                {% for item in departments %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ item.id }}</td>
+                    <td class="py-2 px-3">{{ item.name }}</td>
+                    <td class="py-2 px-3 text-right">
+                        <form method="POST" action="{{ url_for('base_data.department_delete', id=item.id) }}" style="display:inline" onsubmit="return confirm('确定删除？')">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-xs text-slate-400 mb-2">共 {{ departments|length }} 条</div>
+        <form method="POST" action="{{ url_for('base_data.department_add') }}" class="flex gap-2">
+            <input type="text" name="name" placeholder="输入部门" required class="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">添加</button>
+        </form>
+    </div>
+</div>
+
+<div id="tab-unit" class="tab-content {{ '' if active_tab == 'unit' else 'hidden' }}">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <table class="w-full text-sm mb-4">
+            <thead><tr class="border-b text-slate-500"><th class="py-2 px-3 text-left">ID</th><th class="py-2 px-3 text-left">名称</th><th class="py-2 px-3 text-left">联系人</th><th class="py-2 px-3 text-left">电话</th><th class="py-2 px-3 text-left">备注</th><th class="py-2 px-3 text-right">操作</th></tr></thead>
+            <tbody>
+                {% for item in units %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ item.id }}</td>
+                    <td class="py-2 px-3">{{ item.name }}</td>
+                    <td class="py-2 px-3">{{ item.contact or '' }}</td>
+                    <td class="py-2 px-3">{{ item.phone or '' }}</td>
+                    <td class="py-2 px-3">{{ item.remark or '' }}</td>
+                    <td class="py-2 px-3 text-right">
+                        <form method="POST" action="{{ url_for('base_data.unit_delete', id=item.id) }}" style="display:inline" onsubmit="return confirm('确定删除？')">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-xs text-slate-400 mb-2">共 {{ units|length }} 条</div>
+        <form method="POST" action="{{ url_for('base_data.unit_add') }}" class="flex gap-2 flex-wrap">
+            <input type="text" name="name" placeholder="单位名称" required class="flex-1 min-w-[150px] px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="contact" placeholder="联系人" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="phone" placeholder="电话" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="remark" placeholder="备注" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">添加</button>
+        </form>
+    </div>
+</div>
+
+<div id="tab-calc_spec" class="tab-content {{ '' if active_tab == 'calc_spec' else 'hidden' }}">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <table class="w-full text-sm mb-4">
+            <thead><tr class="border-b text-slate-500"><th class="py-2 px-3 text-left">ID</th><th class="py-2 px-3 text-left">品名</th><th class="py-2 px-3 text-center">理算状态</th><th class="py-2 px-3 text-right">操作</th></tr></thead>
+            <tbody>
+                {% for item in calc_specs %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ item.id }}</td>
+                    <td class="py-2 px-3">{{ item.product_name.name }}</td>
+                    <td class="py-2 px-3 text-center">
+                        <form method="POST" action="{{ url_for('base_data.calc_spec_toggle', id=item.id) }}" style="display:inline">
+                            <button type="submit" class="px-2 py-1 rounded text-xs {{ 'bg-green-100 text-green-700' if item.enabled else 'bg-slate-100 text-slate-500' }}">{{ '已启用' if item.enabled else '已禁用' }}</button>
+                        </form>
+                    </td>
+                    <td class="py-2 px-3 text-right">
+                        <form method="POST" action="{{ url_for('base_data.calc_spec_delete', id=item.id) }}" style="display:inline" onsubmit="return confirm('确定删除？')">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-xs text-slate-400 mb-2">共 {{ calc_specs|length }} 条</div>
+        <form method="POST" action="{{ url_for('base_data.calc_spec_add') }}" class="flex gap-2 items-center">
+            <select name="product_name_id" required class="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">选择品名</option>
+                {% for pn in product_names %}
+                <option value="{{ pn.id }}">{{ pn.name }}</option>
+                {% endfor %}
+            </select>
+            <label class="flex items-center gap-1 text-sm text-slate-600">
+                <input type="checkbox" name="enabled" checked class="rounded"> 启用理算
+            </label>
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">添加</button>
+        </form>
+    </div>
+</div>
+
+<div id="tab-warehouse" class="tab-content {{ '' if active_tab == 'warehouse' else 'hidden' }}">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <table class="w-full text-sm mb-4">
+            <thead><tr class="border-b text-slate-500"><th class="py-2 px-3 text-left">ID</th><th class="py-2 px-3 text-left">仓库</th><th class="py-2 px-3 text-right">操作</th></tr></thead>
+            <tbody>
+                {% for item in warehouses %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-2 px-3">{{ item.id }}</td>
+                    <td class="py-2 px-3">{{ item.name }}</td>
+                    <td class="py-2 px-3 text-right">
+                        <form method="POST" action="{{ url_for('base_data.warehouse_delete', id=item.id) }}" style="display:inline" onsubmit="return confirm('确定删除？')">
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-xs text-slate-400 mb-2">共 {{ warehouses|length }} 条</div>
+        <form method="POST" action="{{ url_for('base_data.warehouse_add') }}" class="flex gap-2">
+            <input type="text" name="name" placeholder="输入仓库" required class="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">添加</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById('tab-' + tabName).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-slate-500');
+    });
+    event.currentTarget.classList.remove('border-transparent', 'text-slate-500');
+    event.currentTarget.classList.add('border-blue-500', 'text-blue-600');
+    var url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    url.hash = 'tab-' + tabName;
+    history.replaceState(null, '', url);
+}
+</script>
+{% endblock %}

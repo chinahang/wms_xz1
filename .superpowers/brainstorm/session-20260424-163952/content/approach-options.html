@@ -1,0 +1,75 @@
+<h2>技术方案选择</h2>
+<p class="subtitle">三种方案在部署便捷性、界面精美度、开发复杂度间的权衡</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Flask + Jinja2 + HTMX + TailwindCSS（推荐）</h3>
+      <p><strong>部署：</strong>一键安装，单进程运行，无需Node.js构建</p>
+      <p><strong>界面：</strong>HTMX实现局部刷新，TailwindCSS实现扁平化卡片布局，色彩明快</p>
+      <p><strong>开发：</strong>中等复杂度，服务端渲染为主，少量前端交互逻辑</p>
+      <p><strong>优势：</strong>部署最简（pip install + run），界面现代，维护成本低</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Flask API + Vue3 前后端分离</h3>
+      <p><strong>部署：</strong>需分别部署后端和前端，需Node.js构建</p>
+      <p><strong>界面：</strong>Vue3组件化开发，交互最流畅，SPA体验</p>
+      <p><strong>开发：</strong>开发量最大，需维护两套代码，API设计+前端组件</p>
+      <p><strong>优势：</strong>交互体验最好，扩展性最强，但部署复杂度显著增加</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Flask + Jinja2 + jQuery + Bootstrap</h3>
+      <p><strong>部署：</strong>一键安装，单进程运行</p>
+      <p><strong>界面：</strong>Bootstrap经典风格，较难实现卡片式扁平化设计</p>
+      <p><strong>开发：</strong>最简单，但大量手动DOM操作，代码较难维护</p>
+      <p><strong>优势：</strong>最易上手，但界面精美度难以满足需求</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem;">
+  <h3>对比总结</h3>
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+    <thead>
+      <tr style="border-bottom:2px solid #e2e8f0;">
+        <th style="text-align:left; padding:0.5rem;">维度</th>
+        <th style="text-align:center; padding:0.5rem;">方案A (HTMX)</th>
+        <th style="text-align:center; padding:0.5rem;">方案B (Vue3)</th>
+        <th style="text-align:center; padding:0.5rem;">方案C (jQuery)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:0.5rem;">部署便捷性</td>
+        <td style="text-align:center; color:#22c55e; font-weight:bold;">★★★★★</td>
+        <td style="text-align:center; color:#f59e0b; font-weight:bold;">★★★</td>
+        <td style="text-align:center; color:#22c55e; font-weight:bold;">★★★★★</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:0.5rem;">界面精美度</td>
+        <td style="text-align:center; color:#22c55e; font-weight:bold;">★★★★</td>
+        <td style="text-align:center; color:#22c55e; font-weight:bold;">★★★★★</td>
+        <td style="text-align:center; color:#f59e0b; font-weight:bold;">★★★</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:0.5rem;">开发效率</td>
+        <td style="text-align:center; color:#22c55e; font-weight:bold;">★★★★</td>
+        <td style="text-align:center; color:#f59e0b; font-weight:bold;">★★★</td>
+        <td style="text-align:center; color:#22c55e; font-weight:bold;">★★★★</td>
+      </tr>
+      <tr>
+        <td style="padding:0.5rem;">维护成本</td>
+        <td style="text-align:center; color:#22c55e; font-weight:bold;">★★★★</td>
+        <td style="text-align:center; color:#f59e0b; font-weight:bold;">★★★</td>
+        <td style="text-align:center; color:#ef4444; font-weight:bold;">★★</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}自定义查询 - 钢材进销存{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">自定义查询</h1>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+    <div class="flex gap-2 mb-4">
+        <a href="{{ url_for('report.purchase_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">入库报表</a>
+        <a href="{{ url_for('report.sales_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">出库报表</a>
+        <a href="{{ url_for('report.inventory_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">库存报表</a>
+        <a href="{{ url_for('report.process_report') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">加工报表</a>
+        <a href="{{ url_for('report.custom_report') }}" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">自定义查询</a>
+    </div>
+    <form method="GET" action="{{ url_for('report.custom_report') }}" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">卡号</label>
+            <input type="text" name="card_no" value="{{ request.args.get('card_no', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">开始日期</label>
+            <input type="date" name="date_start" value="{{ request.args.get('date_start', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs text-slate-500 mb-1">结束日期</label>
+            <input type="date" name="date_end" value="{{ request.args.get('date_end', '') }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">搜索</button>
+        {% if logs %}
+        <a href="{{ url_for('report.custom_report') }}?card_no={{ request.args.get('card_no', '') }}&export=excel" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">导出Excel</a>
+        {% endif %}
+    </form>
+</div>
+
+{% if logs %}
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+    <h2 class="text-lg font-semibold text-slate-800 mb-3">卡号生命周期</h2>
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b text-slate-500">
+                <th class="py-2 px-3 text-left">时间</th>
+                <th class="py-2 px-3 text-center">类型</th>
+                <th class="py-2 px-3 text-left">卡号</th>
+                <th class="py-2 px-3 text-left">品名</th>
+                <th class="py-2 px-3 text-left">规格</th>
+                <th class="py-2 px-3 text-left">单号</th>
+                <th class="py-2 px-3 text-right">变动前吨位</th>
+                <th class="py-2 px-3 text-right">变动后吨位</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr class="border-b hover:bg-slate-50">
+                <td class="py-2 px-3">{{ log.created_at.strftime('%Y-%m-%d %H:%M') if log.created_at else '' }}</td>
+                <td class="py-2 px-3 text-center">
+                    {% if log.type == 'in' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">入库</span>
+                    {% elif log.type == 'out' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">出库</span>
+                    {% elif log.type == 'process' %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">加工</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700">{{ log.type }}</span>
+                    {% endif %}
+                </td>
+                <td class="py-2 px-3">{{ log.card_no }}</td>
+                <td class="py-2 px-3">{{ log.product_name }}</td>
+                <td class="py-2 px-3">{{ log.spec }}</td>
+                <td class="py-2 px-3">{{ log.order_no }}</td>
+                <td class="py-2 px-3 text-right">{{ log.weight_before or 0 }}</td>
+                <td class="py-2 px-3 text-right">{{ log.weight_after or 0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if chart_data != '{}' %}
+<div class="bg-white rounded-xl shadow-sm p-4">
+    <h2 class="text-lg font-semibold text-slate-800 mb-3">出入库趋势</h2>
+    <canvas id="trendChart" height="300"></canvas>
+    <script>
+    var ctx = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {{ chart_data | safe }},
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+    </script>
+</div>
+{% endif %}
+{% endblock %}

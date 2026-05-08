@@ -1,0 +1,8 @@
+{% macro render_select(name, options, selected=None, value_field='id', text_field='name', class='') %}
+<select name="{{ name }}" class="{{ class }}">
+  <option value="">请选择</option>
+  {% for opt in options %}
+  <option value="{{ getattr(opt, value_field) }}" {{ 'selected' if selected == getattr(opt, value_field) else '' }}>{{ getattr(opt, text_field) }}</option>
+  {% endfor %}
+</select>
+{% endmacro %}

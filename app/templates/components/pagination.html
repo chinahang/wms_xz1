@@ -1,0 +1,29 @@
+{% macro render_pagination(pagination, endpoint) %}
+{% if pagination.pages > 1 %}
+<div class="pagination-bar">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for(endpoint, page=pagination.page - 1, **request.args) }}" class="page-arrow">&lt;</a>
+    {% else %}
+    <span class="page-arrow disabled">&lt;</span>
+    {% endif %}
+
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+            {% if p == pagination.page %}
+            <span class="page-num current">{{ p }}</span>
+            {% else %}
+            <a href="{{ url_for(endpoint, page=p, **request.args) }}" class="page-num">{{ p }}</a>
+            {% endif %}
+        {% else %}
+        <span class="page-dots">..</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+    <a href="{{ url_for(endpoint, page=pagination.page + 1, **request.args) }}" class="page-arrow">&gt;</a>
+    {% else %}
+    <span class="page-arrow disabled">&gt;</span>
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}
