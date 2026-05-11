@@ -64,8 +64,8 @@
             </tr>
         </thead>
         <tbody>
-        {% if pagination.items %}
-            {% for r in pagination.items %}
+        {% if items %}
+            {% for r in items %}
             <tr>
                 <td>{{ r.product_name }}</td>
                 <td>{{ r.brand }}</td>
@@ -80,7 +80,7 @@
         {% endif %}
         </tbody>
         <tfoot>
-        {% if pagination.items %}
+        {% if items %}
             <tr>
                 <td colspan="3" style="text-align:right;">当前页合计</td>
                 <td style="text-align:right;">{{ total_count_sum }}</td>
@@ -88,9 +88,7 @@
                 <td style="text-align:right;">{{ '%.3f' % total_weight_sum }}</td>
             </tr>
         {% endif %}
-        </tfoot>
     </table>
-    {% if pagination %}{{ render_pagination(pagination, 'inventory.summary') }}{% endif %}
     </div>
 </section>
 {% endblock %}

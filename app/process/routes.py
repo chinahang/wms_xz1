@@ -12,7 +12,6 @@ from io import BytesIO
 @process_bp.route('/')
 @login_required
 def index():
-    page = request.args.get('page', 1, type=int)
     date_start = request.args.get('date_start', '')
     date_end = request.args.get('date_end', '')
     dept_id = request.args.get('dept_id', 0, type=int)
@@ -20,7 +19,7 @@ def index():
 
     if not search_submitted:
         departments = Department.query.all()
-        return render_template('process/list.html', pagination=None, departments=departments, search_submitted=False,
+        return render_template('process/list.html', items=[], departments=departments, search_submitted=False,
                                total_qty_sum=0, total_weight_sum=0)
 
     query = ProcessOrder.query
@@ -32,13 +31,11 @@ def index():
         query = query.filter(ProcessOrder.dept_id == dept_id)
 
     departments = Department.query.all()
-    pagination = query.order_by(ProcessOrder.order_date.desc(), ProcessOrder.created_at.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
+    items = query.order_by(ProcessOrder.order_date.desc(), ProcessOrder.created_at.desc()).all()
     departments = Department.query.all()
-    total_qty_sum = sum(o.total_qty for o in pagination.items)
-    total_weight_sum = sum(float(o.total_weight) for o in pagination.items)
-    return render_template('process/list.html', pagination=pagination, departments=departments,
+    total_qty_sum = sum(o.total_qty for o in items)
+    total_weight_sum = sum(float(o.total_weight) for o in items)
+    return render_template('process/list.html', items=items, departments=departments,
                            total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum)
 
 
@@ -294,7 +291,6 @@ def inventory_modal():
 @process_bp.route('/detail-list')
 @login_required
 def detail_list():
-    page = request.args.get('page', 1, type=int)
     date_start = request.args.get('date_start', '')
     date_end = request.args.get('date_end', '')
     dept_id = request.args.get('dept_id', 0, type=int)
@@ -311,11 +307,9 @@ def detail_list():
     is_export = request.args.get('export', '') == '1'
     if not search_submitted and not is_export:
         departments = Department.query.all()
-        return render_template('process/detail_list.html', pagination=None, departments=departments, search_submitted=False)
+        return render_template('process/detail_list.html', items=[], departments=departments, search_submitted=False)
 
-    pagination = query.order_by(ProcessOrder.order_date.desc(), ProcessDetail.id.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
+    items = query.order_by(ProcessOrder.order_date.desc(), ProcessDetail.id.desc()).all()
 
     if is_export:
         all_details = query.order_by(ProcessOrder.order_date.desc(), ProcessDetail.id.desc()).all()
@@ -349,9 +343,9 @@ def detail_list():
                          mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
     departments = Department.query.all()
-    total_qty_sum = sum(d.qty for d in pagination.items)
-    total_weight_sum = sum(float(d.weight) for d in pagination.items)
-    total_loss_sum = sum(float(d.loss_weight) for d in pagination.items)
-    return render_template('process/detail_list.html', pagination=pagination, departments=departments,
+    total_qty_sum = sum(d.qty for d in items)
+    total_weight_sum = sum(float(d.weight) for d in items)
+    total_loss_sum = sum(float(d.loss_weight) for d in items)
+    return render_template('process/detail_list.html', items=items, departments=departments,
                            search_submitted=True,
                            total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum, total_loss_sum=total_loss_sum)

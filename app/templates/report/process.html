@@ -54,7 +54,7 @@
 </div>
 
 <div class="bg-white rounded-xl shadow-sm p-4">
-    {% if pagination.items %}
+    {% if items %}
     <table class="w-full text-sm">
         <thead>
             <tr class="border-b text-slate-500">
@@ -69,7 +69,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for detail, order in pagination.items %}
+            {% for detail, order in items %}
             <tr class="border-b hover:bg-slate-50">
                 <td class="py-2 px-3">{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '' }}</td>
                 <td class="py-2 px-3">{{ order.order_no }}</td>
@@ -83,7 +83,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {{ render_pagination(pagination, 'report.process_report') }}
+
     {% else %}
     <div class="text-center text-slate-400 py-8">暂无数据</div>
     {% endif %}

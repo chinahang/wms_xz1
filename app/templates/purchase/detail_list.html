@@ -1,12 +1,11 @@
 {% extends "base.html" %}
-{% from "components/pagination.html" import render_pagination %}
 
 {% block title %}入库明细 - 钢材进销存{% endblock %}
 
 {% block content %}
 <div class="ledger-heading">
     <h1 class="ledger-heading__title">入库明细</h1>
-    {% if search_submitted and pagination and pagination.total > 0 %}
+    {% if search_submitted and items %}
     <div class="ledger-heading__actions">
     <a href="{{ url_for('purchase.detail_list', export='1', date_start=request.args.get('date_start',''), date_end=request.args.get('date_end',''), supplier_id=request.args.get('supplier_id',''), dept_id=request.args.get('dept_id',''), card_no=request.args.get('card_no',''), spec=request.args.get('spec',''), remark=request.args.get('remark',''), order_remark=request.args.get('order_remark','')) }}" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">导出Excel</a>
     </div>
@@ -92,8 +91,8 @@
         </thead>
         <tbody>
         {% if search_submitted %}
-            {% if pagination and pagination.items %}
-                {% for item in pagination.items %}
+            {% if items %}
+                {% for item in items %}
                 <tr>
                     <td>{{ item.order.order_no }}</td>
                     <td>{{ item.order.order_date.strftime('%Y-%m-%d') if item.order.order_date else '-' }}</td>
@@ -119,7 +118,7 @@
         {% endif %}
         </tbody>
         <tfoot>
-        {% if search_submitted and pagination and pagination.items %}
+        {% if items %}
             <tr>
                 <td colspan="9" style="text-align:right">当前页合计</td>
                 <td style="text-align:right">{{ total_qty_sum }}</td>
@@ -131,9 +130,7 @@
         {% endif %}
         </tfoot>
     </table>
-    {% if search_submitted and pagination and pagination.items %}
-    {% if pagination %}{{ render_pagination(pagination, 'purchase.detail_list') }}{% endif %}
-    {% endif %}
+
     </div>
 </section>
 

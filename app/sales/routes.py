@@ -14,7 +14,6 @@ from datetime import datetime
 @sales_bp.route('/')
 @login_required
 def index():
-    page = request.args.get('page', 1, type=int)
     date_start = request.args.get('date_start', '')
     date_end = request.args.get('date_end', '')
     order_no = request.args.get('order_no', '').strip()
@@ -40,16 +39,14 @@ def index():
     if dept_id:
         query = query.filter(SalesOrder.dept_id == dept_id)
 
-    pagination = query.order_by(SalesOrder.order_date.desc(), SalesOrder.created_at.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
+    items = query.order_by(SalesOrder.order_date.desc(), SalesOrder.created_at.desc()).all()
     units = Unit.query.all()
     departments = Department.query.all()
-    total_qty_sum = sum(o.total_qty for o in pagination.items)
-    total_weight_sum = sum(float(o.total_weight) for o in pagination.items)
-    total_amount_sum = sum(float(o.total_amount) for o in pagination.items)
+    total_qty_sum = sum(o.total_qty for o in items)
+    total_weight_sum = sum(float(o.total_weight) for o in items)
+    total_amount_sum = sum(float(o.total_amount) for o in items)
     default_date_start = (date_type.today() - timedelta(days=30)).isoformat()
-    return render_template('sales/list.html', pagination=pagination, customers=units, departments=departments,
+    return render_template('sales/list.html', items=items, customers=units, departments=departments,
                            total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum, total_amount_sum=total_amount_sum,
                            default_date_start=default_date_start)
 
@@ -343,7 +340,6 @@ def inventory_list():
 @sales_bp.route('/detail-list')
 @login_required
 def detail_list():
-    page = request.args.get('page', 1, type=int)
     date_start = request.args.get('date_start', '')
     date_end = request.args.get('date_end', '')
     order_no = request.args.get('order_no', '').strip()
@@ -377,12 +373,10 @@ def detail_list():
     if not search_submitted and not is_export:
         units_q = Unit.query.all()
         departments = Department.query.all()
-        return render_template('sales/detail_list.html', pagination=None, customers=units_q, departments=departments,
+        return render_template('sales/detail_list.html', items=[], customers=units_q, departments=departments,
                                search_submitted=False, default_date_start=default_date_start)
 
-    pagination = query.order_by(SalesOrder.order_date.desc(), SalesItem.id.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
+    items = query.order_by(SalesOrder.order_date.desc(), SalesItem.id.desc()).all()
 
     if is_export:
         all_items = query.order_by(SalesOrder.order_date.desc(), SalesItem.id.desc()).all()
@@ -420,10 +414,10 @@ def detail_list():
     departments = Department.query.all()
     def _shipped_qty(i): return i.split_qty if i.split_qty > 0 else i.qty
     def _shipped_weight(i): return float(i.split_weight) if i.split_weight > 0 else float(i.weight)
-    total_qty_sum = sum(_shipped_qty(i) for i in pagination.items)
-    total_weight_sum = sum(_shipped_weight(i) for i in pagination.items)
-    total_amount_sum = sum(float(i.amount) for i in pagination.items)
-    return render_template('sales/detail_list.html', pagination=pagination, customers=units, departments=departments,
+    total_qty_sum = sum(_shipped_qty(i) for i in items)
+    total_weight_sum = sum(_shipped_weight(i) for i in items)
+    total_amount_sum = sum(float(i.amount) for i in items)
+    return render_template('sales/detail_list.html', items=items, customers=units, departments=departments,
                            search_submitted=True, total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum,
                            total_amount_sum=total_amount_sum, default_date_start=default_date_start)
 

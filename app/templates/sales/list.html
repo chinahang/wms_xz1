@@ -78,8 +78,8 @@
             </tr>
         </thead>
         <tbody>
-        {% if pagination.items %}
-            {% for order in pagination.items %}
+        {% if items %}
+            {% for order in items %}
             <tr data-order-id="{{ order.id }}" data-order-type="sales">
                 <td>{{ order.order_no }}</td>
                 <td>{{ order.customer.name if order.customer else '-' }}</td>
@@ -96,7 +96,7 @@
         {% endif %}
         </tbody>
         <tfoot>
-        {% if pagination.items %}
+        {% if items %}
             <tr>
                 <td colspan="3" style="text-align:right">当前页合计</td>
                 <td></td>
@@ -108,9 +108,8 @@
         {% endif %}
         </tfoot>
     </table>
-    {% if pagination %}{{ render_pagination(pagination, 'sales.index') }}{% endif %}
     </div>
-    {% if pagination and pagination.items %}
+    {% if items %}
     <div class="ledger-actions-bar">
         <button class="btn-action" onclick="doLedgerAction('detail')">详情</button>
         <button class="btn-action" onclick="doLedgerAction('edit')">编辑</button>

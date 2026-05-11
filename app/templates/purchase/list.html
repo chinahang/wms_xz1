@@ -1,5 +1,4 @@
 ﻿{% extends "base.html" %}
-{% from "components/pagination.html" import render_pagination %}
 
 {% block title %}采购入库 - 钢材进销存{% endblock %}
 
@@ -78,8 +77,8 @@
             </tr>
         </thead>
         <tbody>
-        {% if pagination and pagination.items %}
-            {% for order in pagination.items %}
+        {% if items %}
+            {% for order in items %}
             <tr data-order-id="{{ order.id }}" data-order-type="purchase">
                 <td>{{ order.order_no }}</td>
                 <td>{{ order.supplier.name if order.supplier else '-' }}</td>
@@ -92,11 +91,11 @@
             </tr>
             {% endfor %}
         {% else %}
-            <tr><td colspan="8" class="ledger-empty-row">{{ '暂无入库单' if pagination is not none else '请设置查询条件后点击搜索' }}</td></tr>
+            <tr><td colspan="8" class="ledger-empty-row">{{ '暂无入库单' if search_submitted else '请设置查询条件后点击搜索' }}</td></tr>
         {% endif %}
         </tbody>
         <tfoot>
-        {% if pagination and pagination.items %}
+        {% if items %}
             <tr>
                 <td colspan="2" style="text-align:right">当前页合计</td>
                 <td style="text-align:right">{{ total_qty_sum }}</td>
@@ -107,9 +106,9 @@
         {% endif %}
         </tfoot>
     </table>
-    {% if pagination %}{{ render_pagination(pagination, 'purchase.index') }}{% endif %}
+    
     </div>
-    {% if pagination and pagination.items %}
+    {% if items %}
     <div class="ledger-actions-bar">
         <button class="btn-action" onclick="doLedgerAction('detail')">详情</button>
         <button class="btn-action" onclick="doLedgerAction('edit')">编辑</button>

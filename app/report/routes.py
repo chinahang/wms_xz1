@@ -7,7 +7,6 @@ from app.models import (PurchaseOrder, PurchaseItem, SalesOrder, SalesItem,
                         Inventory, ProcessOrder, ProcessDetail, TransactionLog,
                         Unit, Department, Brand, Origin, ProductName)
 from app import db
-from app.utils import FakePagination
 from openpyxl import Workbook
 
 
@@ -26,7 +25,6 @@ def export_excel(headers, rows, filename='export.xlsx'):
 @report_bp.route('/purchase')
 @login_required
 def purchase_report():
-    page = request.args.get('page', 1, type=int)
     date_start = request.args.get('date_start', '')
     date_end = request.args.get('date_end', '')
     supplier_id = request.args.get('supplier_id', 0, type=int)
@@ -64,19 +62,16 @@ def purchase_report():
             ])
         return export_excel(headers, rows, '入库明细报表.xlsx')
 
-    pagination = query.order_by(PurchaseOrder.created_at.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
+    items = query.order_by(PurchaseOrder.created_at.desc()).all()
     suppliers = Unit.query.all()
     departments = Department.query.all()
     product_names = ProductName.query.all()
-    return render_template('report/purchase.html', pagination=pagination, suppliers=suppliers, departments=departments, product_names=product_names)
+    return render_template('report/purchase.html', items=items, suppliers=suppliers, departments=departments, product_names=product_names)
 
 
 @report_bp.route('/sales')
 @login_required
 def sales_report():
-    page = request.args.get('page', 1, type=int)
     date_start = request.args.get('date_start', '')
     date_end = request.args.get('date_end', '')
     customer_id = request.args.get('customer_id', 0, type=int)
@@ -114,20 +109,16 @@ def sales_report():
             ])
         return export_excel(headers, rows, '出库明细报表.xlsx')
 
-    pagination = query.order_by(SalesOrder.created_at.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
+    items = query.order_by(SalesOrder.created_at.desc()).all()
     customers = Unit.query.all()
     departments = Department.query.all()
     product_names = ProductName.query.all()
-    return render_template('report/sales.html', pagination=pagination, customers=customers, departments=departments, product_names=product_names)
+    return render_template('report/sales.html', items=items, customers=customers, departments=departments, product_names=product_names)
 
 
 @report_bp.route('/inventory')
 @login_required
 def inventory_report():
-    page = request.args.get('page', 1, type=int)
-    per_page = current_app.config['PER_PAGE']
     product_name = request.args.get('product_name', '')
     brand = request.args.get('brand', '')
     origin = request.args.get('origin', '')
@@ -161,22 +152,17 @@ def inventory_report():
             rows.append([r.product_name, r.brand, r.origin, r.count, float(r.total_qty or 0), float(r.total_weight or 0)])
         return export_excel(headers, rows, '库存汇总报表.xlsx')
 
-    total = query.count()
-    results = query.offset((page - 1) * per_page).limit(per_page).all()
-    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
-
-    pagination = FakePagination(results, page, per_page, total, total_pages)
+    results = query.all()
     brands = Brand.query.all()
     origins = Origin.query.all()
     departments = Department.query.all()
     product_names = ProductName.query.all()
-    return render_template('report/inventory.html', pagination=pagination, product_names=product_names, brands=brands, origins=origins, departments=departments)
+    return render_template('report/inventory.html', items=results, product_names=product_names, brands=brands, origins=origins, departments=departments)
 
 
 @report_bp.route('/process')
 @login_required
 def process_report():
-    page = request.args.get('page', 1, type=int)
     date_start = request.args.get('date_start', '')
     date_end = request.args.get('date_end', '')
     product_name = request.args.get('product_name', '')
@@ -206,16 +192,13 @@ def process_report():
             ])
         return export_excel(headers, rows, '加工损耗报表.xlsx')
 
-    all_results = query.order_by(ProcessOrder.created_at.desc()).all()
-    total_input = sum(float(d.weight) + float(d.loss_weight) for d, o in all_results)
-    total_output = sum(float(d.weight) for d, o in all_results)
-    total_loss = sum(float(d.loss_weight) for d, o in all_results)
+    items = query.order_by(ProcessOrder.created_at.desc()).all()
+    total_input = sum(float(d.weight) + float(d.loss_weight) for d, o in items)
+    total_output = sum(float(d.weight) for d, o in items)
+    total_loss = sum(float(d.loss_weight) for d, o in items)
     loss_rate = total_loss / total_input if total_input > 0 else 0
 
-    pagination = query.order_by(ProcessOrder.created_at.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
-    return render_template('report/process.html', pagination=pagination, total_input=total_input, total_output=total_output, total_loss=total_loss, loss_rate=loss_rate)
+    return render_template('report/process.html', items=items, total_input=total_input, total_output=total_output, total_loss=total_loss, loss_rate=loss_rate)
 
 
 @report_bp.route('/custom')

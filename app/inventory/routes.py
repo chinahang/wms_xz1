@@ -3,14 +3,13 @@ from flask_login import login_required
 from app.inventory import inventory_bp
 from app.models import Inventory, Department, Brand, Origin, ProductName, Warehouse, PurchaseItem, PurchaseOrder, ProcessDetail, ProcessOrder
 from app import db
-from app.utils import FakePagination
+
 import re
 
 
 @inventory_bp.route('/')
 @login_required
 def index():
-    page = request.args.get('page', 1, type=int)
     card_no = request.args.get('card_no', '')
     product_name = request.args.get('product_name', '')
     brand = request.args.get('brand', '')
@@ -35,17 +34,15 @@ def index():
     if status:
         query = query.filter(Inventory.status == status)
 
-    pagination = query.order_by(Inventory.created_at.desc()).paginate(
-        page=page, per_page=current_app.config['PER_PAGE'], error_out=False
-    )
+    items = query.order_by(Inventory.created_at.desc()).all()
     product_names = ProductName.query.all()
     brands = Brand.query.all()
     origins = Origin.query.all()
     departments = Department.query.all()
     warehouses = Warehouse.query.all()
-    total_qty_sum = sum(item.qty for item in pagination.items)
-    total_weight_sum = sum(float(item.weight) for item in pagination.items)
-    card_nos = [item.card_no for item in pagination.items]
+    total_qty_sum = sum(item.qty for item in items)
+    total_weight_sum = sum(float(item.weight) for item in items)
+    card_nos = [item.card_no for item in items]
     purchase_dates = {}
     if card_nos:
         subq = db.session.query(
@@ -97,15 +94,13 @@ def index():
                     for split_card, orig_card in split_origins.items():
                         if orig_card == r.new_card_no:
                             purchase_dates[split_card] = r.first_date.strftime('%Y-%m-%d')
-    return render_template('inventory/list.html', pagination=pagination, product_names=product_names, brands=brands, origins=origins, departments=departments, warehouses=warehouses,
+    return render_template('inventory/list.html', items=items, product_names=product_names, brands=brands, origins=origins, departments=departments, warehouses=warehouses,
                            total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum, purchase_dates=purchase_dates)
 
 
 @inventory_bp.route('/summary')
 @login_required
 def summary():
-    page = request.args.get('page', 1, type=int)
-    per_page = current_app.config['PER_PAGE']
     product_name = request.args.get('product_name', '')
     brand = request.args.get('brand', '')
     origin = request.args.get('origin', '')
@@ -130,11 +125,7 @@ def summary():
         query = query.filter(Inventory.dept_id == dept_id)
 
     query = query.group_by(Inventory.product_name, Inventory.brand, Inventory.origin)
-    total = query.count()
-    results = query.offset((page - 1) * per_page).limit(per_page).all()
-    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
-
-    pagination = FakePagination(results, page, per_page, total, total_pages)
+    results = query.all()
     brands = Brand.query.all()
     origins = Origin.query.all()
     departments = Department.query.all()
@@ -142,5 +133,5 @@ def summary():
     total_qty_sum = sum(int(r.total_qty) for r in results)
     total_weight_sum = sum(float(r.total_weight) for r in results)
     total_count_sum = sum(int(r.count) for r in results)
-    return render_template('inventory/summary.html', pagination=pagination, product_names=product_names, brands=brands, origins=origins, departments=departments,
+    return render_template('inventory/summary.html', items=results, product_names=product_names, brands=brands, origins=origins, departments=departments,
                            total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum, total_count_sum=total_count_sum)
