@@ -81,7 +81,7 @@
         {% if items %}
             {% for order in items %}
             <tr data-order-id="{{ order.id }}" data-order-type="sales">
-                <td>{{ order.order_no }}</td>
+                <td><a href="{{ url_for('sales.detail_list', order_no=order.order_no, search_submitted=1) }}" class="text-blue-600 hover:underline">{{ order.order_no }}</a></td>
                 <td>{{ order.customer.name if order.customer else '-' }}</td>
                 <td>{{ order.dept.name if order.dept else '-' }}</td>
                 <td class="max-w-[100px] truncate">{{ order.remark or '' }}</td>
@@ -111,7 +111,6 @@
     </div>
     {% if items %}
     <div class="ledger-actions-bar">
-        <button class="btn-action" onclick="doLedgerAction('detail')">详情</button>
         <button class="btn-action" onclick="doLedgerAction('edit')">编辑</button>
         <button class="btn-action" onclick="window.print()">打印</button>
         <button class="btn-action" style="color:#dc2626" onclick="doLedgerAction('delete')">删除</button>
