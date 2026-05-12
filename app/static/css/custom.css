@@ -225,6 +225,13 @@ input[type="number"] {
     padding: 40px 12px !important;
     font-size: 15px;
 }
+.ledger-empty-row.standalone,
+.ledger-data-window__body .ledger-empty-row {
+    text-align: center;
+    color: #999;
+    padding: 30px 12px;
+    font-size: 14px;
+}
 
 /* ===== Action toolbar below data window ===== */
 .ledger-actions-bar {

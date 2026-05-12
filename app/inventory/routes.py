@@ -1,9 +1,10 @@
-from flask import render_template, request, current_app
+from flask import render_template, request, current_app, send_file
 from flask_login import login_required
 from app.inventory import inventory_bp
 from app.models import Inventory, Department, Brand, Origin, ProductName, Warehouse, PurchaseItem, PurchaseOrder, ProcessDetail, ProcessOrder
 from app import db
-
+import openpyxl
+from io import BytesIO
 import re
 
 
@@ -34,7 +35,37 @@ def index():
     if status:
         query = query.filter(Inventory.status == status)
 
+    is_export = request.args.get('export', '') == '1'
     items = query.order_by(Inventory.created_at.desc()).all()
+
+    if is_export:
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = '库存明细'
+        headers = ['卡号', '品名', '牌号', '产地', '规格', '件数', '吨位', '部门', '仓库', '状态', '入库时间']
+        ws.append(headers)
+        for col in range(1, len(headers) + 1):
+            ws.cell(row=1, column=col).font = openpyxl.styles.Font(bold=True)
+        status_map = {'in_stock': '在库', 'consumed': '已消耗', 'out': '已出库'}
+        for item in items:
+            ws.append([
+                item.card_no,
+                item.product_name,
+                item.brand,
+                item.origin,
+                item.spec,
+                item.qty,
+                float(item.weight),
+                item.dept.name if item.dept else '',
+                item.warehouse.name if item.warehouse else '',
+                status_map.get(item.status, item.status),
+                item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '',
+            ])
+        buf = BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        return send_file(buf, as_attachment=True, download_name='库存明细.xlsx',
+                         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     product_names = ProductName.query.all()
     brands = Brand.query.all()
     origins = Origin.query.all()
@@ -98,40 +129,3 @@ def index():
                            total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum, purchase_dates=purchase_dates)
 
 
-@inventory_bp.route('/summary')
-@login_required
-def summary():
-    product_name = request.args.get('product_name', '')
-    brand = request.args.get('brand', '')
-    origin = request.args.get('origin', '')
-    dept_id = request.args.get('dept_id', 0, type=int)
-
-    query = db.session.query(
-        Inventory.product_name,
-        Inventory.brand,
-        Inventory.origin,
-        db.func.sum(Inventory.qty).label('total_qty'),
-        db.func.sum(Inventory.weight).label('total_weight'),
-        db.func.count(Inventory.id).label('count')
-    ).filter(Inventory.status == 'in_stock')
-
-    if product_name:
-        query = query.filter(Inventory.product_name.contains(product_name))
-    if brand:
-        query = query.filter(Inventory.brand == brand)
-    if origin:
-        query = query.filter(Inventory.origin == origin)
-    if dept_id:
-        query = query.filter(Inventory.dept_id == dept_id)
-
-    query = query.group_by(Inventory.product_name, Inventory.brand, Inventory.origin)
-    results = query.all()
-    brands = Brand.query.all()
-    origins = Origin.query.all()
-    departments = Department.query.all()
-    product_names = ProductName.query.all()
-    total_qty_sum = sum(int(r.total_qty) for r in results)
-    total_weight_sum = sum(float(r.total_weight) for r in results)
-    total_count_sum = sum(int(r.count) for r in results)
-    return render_template('inventory/summary.html', items=results, product_names=product_names, brands=brands, origins=origins, departments=departments,
-                           total_qty_sum=total_qty_sum, total_weight_sum=total_weight_sum, total_count_sum=total_count_sum)

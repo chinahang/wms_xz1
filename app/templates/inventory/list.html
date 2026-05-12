@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from "components/pagination.html" import render_pagination %}
 
 {% block title %}库存管理 - 钢材进销存{% endblock %}
 
@@ -8,7 +7,7 @@
     <h1 class="ledger-heading__title">库存管理</h1>
     <div class="ledger-heading__actions">
         <a href="{{ url_for('inventory.index') }}" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">卡号明细</a>
-        <a href="{{ url_for('inventory.summary') }}" class="px-4 py-2 bg-white text-slate-600 border rounded-lg text-sm hover:bg-slate-50">汇总视图</a>
+        <a href="{{ url_for('inventory.index', export='1', **request.args) }}" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">导出Excel</a>
     </div>
 </div>
 

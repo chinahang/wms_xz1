@@ -374,99 +374,114 @@ updateFormSummary();
 </script>
 
 {% else %}
-<form method="POST" action="{{ url_for('process.create') }}">
-<div class="bg-white rounded-xl shadow-sm p-6 mb-4">
-    <div class="flex items-end gap-4 flex-wrap">
-        <div>
-            <label class="block text-xs text-slate-500 mb-1">销售部门</label>
-            <select id="process-dept-id" name="dept_id" required class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-40">
-                <option value="">请选择</option>
-                {% for d in departments %}
-                <option value="{{ d.id }}">{{ d.name }}</option>
-                {% endfor %}
-            </select>
+<form method="POST" action="{{ url_for('process.create') }}" class="flex flex-col" style="height:calc(100vh - 90px);gap:10px;">
+    <input type="hidden" name="raw_card_no" id="hidden-raw-card-no" value="">
+    <input type="hidden" name="raw_spec" id="hidden-raw-spec" value="">
+
+    <!-- Header Fields -->
+    <div class="bg-white rounded-xl shadow-sm px-6 py-4" style="flex-shrink:0;">
+        <div class="flex items-end gap-4 flex-wrap">
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">销售部门</label>
+                <select id="process-dept-id" name="dept_id" required class="px-3 py-2 border rounded-lg text-sm w-40">
+                    <option value="">请选择</option>
+                    {% for d in departments %}
+                    <option value="{{ d.id }}">{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">加工日期</label>
+                <input type="date" name="order_date" value="{{ today }}" class="px-3 py-2 border rounded-lg text-sm w-36">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-500 mb-1">加工备注</label>
+                <input type="text" name="remark" class="px-3 py-2 border rounded-lg text-sm w-40" placeholder="备注">
+            </div>
         </div>
-        <div>
-            <label class="block text-xs text-slate-500 mb-1">加工日期</label>
-            <input type="date" name="order_date" value="{{ today }}" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
-        </div>
-        <div>
-            <label class="block text-xs text-slate-500 mb-1">加工备注</label>
-            <input type="text" name="remark" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-40" placeholder="备注">
-        </div>
-        <button type="button" onclick="openInventoryModal()" class="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600">选择库存</button>
     </div>
-</div>
 
-<!-- Raw Material Section -->
-<div id="raw-material-section" class="bg-amber-50 rounded-xl shadow-sm p-6 mb-4 border border-amber-200" style="display:none">
-    <h2 class="text-lg font-semibold text-amber-700 mb-4">原料</h2>
-    <table class="w-full text-sm">
-        <thead><tr class="border-b text-slate-500">
-            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
-            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">件数</th><th class="py-2 px-2 text-right">吨位</th>
-            <th class="py-2 px-2 text-right">剩余吨位</th><th class="py-2 px-2 text-left">仓库</th><th class="py-2 px-2 text-left">明细备注</th>
-        </tr></thead>
-        <tbody>
-            <tr>
-                <td id="raw-pn" class="py-2 px-2"></td>
-                <td id="raw-card" class="py-2 px-2 font-mono text-amber-700"></td>
-                <td id="raw-brand" class="py-2 px-2"></td>
-                <td id="raw-origin" class="py-2 px-2"></td>
-                <td id="raw-spec" class="py-2 px-2"></td>
-                <td id="raw-qty" class="py-2 px-2 text-right"></td>
-                <td id="raw-weight" class="py-2 px-2 text-right"></td>
-                <td id="raw-remaining" class="py-2 px-2 text-right font-bold text-amber-600"></td>
-                <td id="raw-warehouse" class="py-2 px-2"></td>
-                <td id="raw-remark" class="py-2 px-2"></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+    <!-- Sub-windows area -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden;">
 
-<!-- Product Section -->
-<div id="products-section" class="bg-white rounded-xl shadow-sm p-6 mb-4" style="display:none">
-    <h2 class="text-lg font-semibold text-slate-700 mb-4">成品</h2>
-    <table class="w-full text-sm mb-4">
-        <thead><tr class="border-b text-slate-500">
-            <th class="py-2 px-2 text-left">品名</th><th class="py-2 px-2 text-left">卡号</th><th class="py-2 px-2 text-left">牌号</th><th class="py-2 px-2 text-left">产地</th>
-            <th class="py-2 px-2 text-left">规格</th><th class="py-2 px-2 text-right">张数</th>            <th class="py-2 px-2 text-right">理算吨位</th><th class="py-2 px-2 text-left">仓库</th><th class="py-2 px-2 text-left">备注</th><th class="py-2 px-2 text-center">操作</th>
-        </tr></thead>
-        <tbody id="products-container">
-            <tr id="product-summary-row" class="border-t-2 border-slate-300 bg-slate-100 font-semibold text-sm">
-                <td colspan="5" class="py-2 px-2 text-right">当前合计</td>
-                <td id="sum-qty" class="py-2 px-2 text-right">0</td>
-                <td id="sum-weight" class="py-2 px-2 text-right">0</td>
-                <td></td><td></td><td></td>
-            </tr>
-        </tbody>
-    </table>
+        <!-- Raw Material Window -->
+        <div class="ledger-data-window" style="height:auto;flex-shrink:0;min-height:110px;width:auto;margin:0;">
+            <div class="ledger-data-window__header">原料信息</div>
+            <div class="ledger-data-window__body" style="min-height:50px;">
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th draggable="true">品名</th><th draggable="true">卡号</th><th draggable="true">牌号</th><th draggable="true">产地</th>
+                            <th draggable="true">规格</th><th draggable="true" style="text-align:right">件数</th><th draggable="true" style="text-align:right">吨位</th>
+                            <th draggable="true" style="text-align:right">剩余吨位</th><th draggable="true">仓库</th><th draggable="true">备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="raw-material-row" style="display:none;">
+                            <td id="raw-pn"></td>
+                            <td id="raw-card" class="font-mono" style="color:#b45309;"></td>
+                            <td id="raw-brand"></td>
+                            <td id="raw-origin"></td>
+                            <td id="raw-spec"></td>
+                            <td id="raw-qty" style="text-align:right"></td>
+                            <td id="raw-weight" style="text-align:right"></td>
+                            <td id="raw-remaining" style="text-align:right;font-weight:bold;color:#d97706"></td>
+                            <td id="raw-warehouse"></td>
+                            <td id="raw-remark"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="raw-empty-state" class="ledger-empty-row">请先选择原料</div>
+            </div>
+            <div class="ledger-actions-bar">
+                <button type="button" onclick="openInventoryModal()" class="btn-action">选择原料</button>
+                <button type="button" onclick="clearRawMaterial()" class="btn-action" id="btn-clear-raw" style="display:none;color:#dc2626">清除原料</button>
+            </div>
+        </div>
 
-    <!-- Add Detail Area -->
-    <div class="flex items-end gap-3 flex-wrap">
-        <div>
-            <label class="block text-xs text-slate-500 mb-1">品名</label>
-            <select id="add-product-name" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-32">
-                <option value="">请选择</option>
-                {% for pn in product_names %}
-                <option value="{{ pn.name }}">{{ pn.name }}</option>
-                {% endfor %}
-            </select>
+        <!-- Products Window -->
+        <div class="ledger-data-window" style="flex:1;min-height:340px;width:auto;margin:0;">
+            <div class="ledger-data-window__header">成品信息 <span id="product-count" style="font-weight:normal;font-size:12px;margin-left:6px;color:#888;"></span></div>
+            <div class="ledger-data-window__body" style="min-height:320px;">
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th draggable="true">品名</th><th draggable="true">卡号</th><th draggable="true">牌号</th><th draggable="true">产地</th>
+                            <th draggable="true">规格</th><th draggable="true" style="text-align:right">张数</th><th draggable="true" style="text-align:right">理算吨位</th>
+                            <th draggable="true">仓库</th><th draggable="true">备注</th><th draggable="true" style="text-align:center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-container">
+                        <tr id="product-summary-row" style="background:#f0f0f0;font-weight:bold;">
+                            <td colspan="5" style="text-align:right">当前合计</td>
+                            <td id="sum-qty" style="text-align:right">0</td>
+                            <td id="sum-weight" style="text-align:right">0.000</td>
+                            <td></td><td></td><td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="products-empty-state" class="ledger-empty-row" style="display:none;">请先选择原料后再添加成品</div>
+            </div>
+            <div class="ledger-actions-bar" style="flex-wrap:wrap;gap:6px;">
+                <span style="padding:4px 0;font-size:12px;color:#555;line-height:28px;">添加成品 →</span>
+                <select id="add-product-name" style="padding:4px 8px;border:1px solid #333;font-size:12px;">
+                    <option value="">品名</option>
+                    {% for pn in product_names %}
+                    <option value="{{ pn.name }}">{{ pn.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" id="add-spec" placeholder="规格" style="padding:4px 8px;border:1px solid #333;font-size:12px;width:130px;">
+                <input type="number" id="add-qty" min="1" value="1" style="padding:4px 8px;border:1px solid #333;font-size:12px;width:60px;">
+                <button type="button" onclick="addProductDetail()" class="btn-action">添加明细</button>
+                <button type="button" onclick="recalculateAll()" class="btn-action">一键理算</button>
+            </div>
         </div>
-        <div>
-            <label class="block text-xs text-slate-500 mb-1">规格</label>
-            <input type="text" id="add-spec" placeholder="1.5*1250*2500" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
-        </div>
-        <div>
-            <label class="block text-xs text-slate-500 mb-1">张数</label>
-            <input type="number" id="add-qty" min="1" value="1" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-20">
-        </div>
-        <button type="button" onclick="addProductDetail()" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">添加明细</button>
-        <button type="button" onclick="recalculateAll()" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">一键理算</button>
     </div>
-</div>
 
-<button type="submit" class="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600">保存加工单</button>
+    <!-- Save button -->
+    <div style="flex-shrink:0;">
+        <button type="submit" class="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600">保存加工单</button>
+    </div>
 </form>
 
 <div id="inventory-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
@@ -507,19 +522,42 @@ function selectRawMaterial(row) {
     document.getElementById('raw-qty').textContent = d.qty;
     document.getElementById('raw-weight').textContent = d.weight;
     document.getElementById('raw-warehouse').textContent = d.warehouse || '-';
-    updateRemaining();
-    document.getElementById('raw-material-section').style.display = '';
-    document.getElementById('products-section').style.display = '';
-    closeInventoryModal();
-    // Store raw card_no
+    document.getElementById('raw-remark').textContent = '';
+
     document.getElementById('raw-card').setAttribute('data-card-no', d.cardNo);
     document.getElementById('raw-spec').setAttribute('data-spec', d.spec);
+    document.getElementById('hidden-raw-card-no').value = d.cardNo;
+    document.getElementById('hidden-raw-spec').value = d.spec;
+
+    document.getElementById('raw-material-row').style.display = '';
+    document.getElementById('raw-empty-state').style.display = 'none';
+    document.getElementById('btn-clear-raw').style.display = '';
+    document.getElementById('products-empty-state').style.display = 'none';
+
+    updateRemaining();
     productSeq = 1;
-    // Clear existing products
     var container = document.getElementById('products-container');
     var children = container.querySelectorAll('tr:not(#product-summary-row)');
     children.forEach(function(c) { c.remove(); });
     updateFormSummary();
+    updateProductCount();
+    closeInventoryModal();
+}
+
+function clearRawMaterial() {
+    rawWeight = 0;
+    productSeq = 1;
+    document.getElementById('raw-material-row').style.display = 'none';
+    document.getElementById('raw-empty-state').style.display = '';
+    document.getElementById('btn-clear-raw').style.display = 'none';
+    document.getElementById('hidden-raw-card-no').value = '';
+    document.getElementById('hidden-raw-spec').value = '';
+    document.getElementById('products-empty-state').style.display = '';
+    var container = document.getElementById('products-container');
+    var children = container.querySelectorAll('tr:not(#product-summary-row)');
+    children.forEach(function(c) { c.remove(); });
+    updateFormSummary();
+    updateProductCount();
 }
 
 function updateRemaining() {
@@ -537,8 +575,8 @@ function addProductDetail() {
     if (!pn) { alert('请选择品名'); return; }
     if (!spec) { alert('请输入规格'); return; }
     if (qty <= 0) { alert('请输入张数'); return; }
+    if (!rawWeight || rawWeight <= 0) { alert('请先选择原料'); return; }
 
-    // Calculate weight: round(thickness*width*length*7.85/1e9, 3) * qty
     var calcWeight = 0;
     if (calcEnabledNames.indexOf(pn) >= 0) {
         var parts = spec.split('*').map(function(s) { return parseFloat(s.trim()); });
@@ -549,10 +587,10 @@ function addProductDetail() {
             alert('规格格式不正确，请使用 厚度*宽度*长度 格式'); return;
         }
     } else {
-        alert('该品名未启用理算，无法自动计算吨位'); return;
+        calcWeight = 0;
     }
 
-    var rawCard = document.getElementById('raw-card').getAttribute('data-card-no');
+    var rawCard = document.getElementById('hidden-raw-card-no').value;
     var newCardNo = rawCard + '-' + productSeq;
     productSeq++;
 
@@ -562,7 +600,6 @@ function addProductDetail() {
 
     var container = document.getElementById('products-container');
     var tr = document.createElement('tr');
-    tr.className = 'border-b hover:bg-slate-50';
     tr.dataset.weight = calcWeight;
     tr.innerHTML = '<td class="py-2 px-2"><select name="product_name[]" class="w-full px-1 py-0 border rounded text-xs"><option value="">请选择</option>{% for pn in product_names %}<option value="{{ pn.name }}">{{ pn.name }}</option>{% endfor %}</select></td>'
         + '<td class="py-2 px-2 font-mono text-xs"><span>' + newCardNo + '</span><input type="hidden" name="new_card_no[]" value="' + newCardNo + '"></td>'
@@ -575,26 +612,22 @@ function addProductDetail() {
         + '<td class="py-2 px-2"><input type="text" name="remark[]" value="" class="w-full px-1 py-0 border rounded text-xs"></td>'
         + '<td class="py-2 px-2 text-center"><button type="button" onclick="removeProduct(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>';
     tr.querySelector('select[name="product_name[]"]').value = pn;
-    // Insert before summary row
     container.insertBefore(tr, document.getElementById('product-summary-row'));
 
-    // Also need raw_card_no and raw_spec as hidden fields
-    document.getElementById('raw-card').insertAdjacentHTML('afterend', '<input type="hidden" name="raw_card_no" id="hidden-raw-card-no" value="' + rawCard + '">');
-    document.getElementById('raw-spec').insertAdjacentHTML('afterend', '<input type="hidden" name="raw_spec" value="' + document.getElementById('raw-spec').getAttribute('data-spec') + '">');
-
-    // Clear inputs
     document.getElementById('add-product-name').value = '';
     document.getElementById('add-spec').value = '';
     document.getElementById('add-qty').value = '1';
 
     updateRemaining();
     updateFormSummary();
+    updateProductCount();
 }
 
 function removeProduct(btn) {
     btn.closest('tr').remove();
     updateRemaining();
     updateFormSummary();
+    updateProductCount();
 }
 
 function recalculateAll() {
@@ -632,6 +665,12 @@ function updateFormSummary() {
     document.getElementById('sum-weight').textContent = weight.toFixed(3);
 }
 
+function updateProductCount() {
+    var rows = document.querySelectorAll('#products-container tr[data-weight]');
+    var el = document.getElementById('product-count');
+    el.textContent = rows.length > 0 ? '(' + rows.length + ' 项)' : '';
+}
+
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('item-weight')) {
         var tr = e.target.closest('tr');
@@ -643,7 +682,6 @@ document.addEventListener('input', function(e) {
     }
 });
 
-// Override the selectRawMaterial from modal
 document.addEventListener('click', function(e) {
     var row = e.target.closest('.inv-row');
     if (row) {
