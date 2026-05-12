@@ -4,26 +4,26 @@
           class="flex gap-2 mb-4 flex-wrap">
         <input type="hidden" name="dept_id" value="{{ request.args.get('dept_id', '') }}">
         <input type="text" name="card_no" placeholder="卡号" value="{{ request.args.get('card_no', '') }}"
-               class="px-2 py-1 border rounded text-sm w-28">
-        <select name="product_name" class="px-2 py-1 border rounded text-sm">
+               class="px-2 py-1.5 border border-slate-400 rounded text-sm w-28">
+        <select name="product_name" class="px-2 py-1.5 border border-slate-400 rounded text-sm">
             <option value="">品名</option>
             {% for pn in product_names %}
             <option value="{{ pn.name }}" {{ 'selected' if request.args.get('product_name') == pn.name }}>{{ pn.name }}</option>
             {% endfor %}
         </select>
-        <select name="brand" class="px-2 py-1 border rounded text-sm">
+        <select name="brand" class="px-2 py-1.5 border border-slate-400 rounded text-sm">
             <option value="">牌号</option>
             {% for b in brands %}
             <option value="{{ b.name }}" {{ 'selected' if request.args.get('brand') == b.name }}>{{ b.name }}</option>
             {% endfor %}
         </select>
-        <select name="origin" class="px-2 py-1 border rounded text-sm">
+        <select name="origin" class="px-2 py-1.5 border border-slate-400 rounded text-sm">
             <option value="">产地</option>
             {% for o in origins %}
             <option value="{{ o.name }}" {{ 'selected' if request.args.get('origin') == o.name }}>{{ o.name }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">查询</button>
+        <button type="submit" class="px-3 py-1.5 bg-blue-500 text-white rounded text-sm">查询</button>
     </form>
 
     <div class="max-h-80 overflow-y-auto">
