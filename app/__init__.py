@@ -21,6 +21,11 @@ def create_app(config_name='development'):
     Session(app)
 
     db.init_app(app)
+
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db.session.remove()
+
     login_manager.init_app(app)
     csrf.init_app(app)
 

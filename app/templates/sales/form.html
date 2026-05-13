@@ -85,7 +85,7 @@
     </table>
 </div>
 {% elif edit_mode %}
-<form method="POST" action="{{ url_for('sales.edit', id=order.id) }}">
+<form method="POST" action="{{ url_for('sales.edit', id=order.id) }}" data-enter-add="openInventoryModal">
 <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="relative customer-search-wrapper">
@@ -163,11 +163,11 @@
                 <td class="py-2 px-3"><input type="text" name="brand[]" value="{{ item.brand }}" class="w-full px-2 py-1 border rounded text-sm bg-slate-50" readonly></td>
                 <td class="py-2 px-3"><input type="text" name="origin[]" value="{{ item.origin }}" class="w-full px-2 py-1 border rounded text-sm bg-slate-50" readonly></td>
                 <td class="py-2 px-3"><input type="text" name="spec[]" value="{{ item.spec }}" class="w-full px-2 py-1 border rounded text-sm bg-slate-50" readonly></td>
-                <td class="py-2 px-3"><input type="number" name="qty[]" value="{{ item.qty }}" class="w-full px-2 py-1 border rounded text-sm bg-slate-50 item-qty" min="1" readonly></td>
-                <td class="py-2 px-3"><input type="number" name="weight[]" value="{{ item.weight }}" step="0.001" class="w-full px-2 py-1 border rounded text-sm item-weight" min="0" required></td>
-                <td class="py-2 px-3"><input type="number" name="split_qty[]" value="{{ item.split_qty or '' }}" class="w-full px-2 py-1 border rounded text-sm item-split-qty" min="0" placeholder="整件出"></td>
-                <td class="py-2 px-3"><input type="number" name="split_weight[]" step="0.001" value="{{ item.split_weight or '' }}" class="w-full px-2 py-1 border rounded text-sm item-split-weight" min="0" placeholder="自动"></td>
-                <td class="py-2 px-3"><input type="number" name="unit_price[]" value="{{ item.unit_price or 0 }}" step="0.01" class="w-full px-2 py-1 border rounded text-sm item-unit-price" min="0"></td>
+                <td class="py-2 px-3"><input type="number" name="qty[]" value="{{ item.qty }}" class="bg-slate-50 item-qty fld-number" min="1" readonly></td>
+                <td class="py-2 px-3"><input type="number" name="weight[]" value="{{ item.weight }}" step="0.001" class="item-weight fld-number" min="0" required></td>
+                <td class="py-2 px-3"><input type="number" name="split_qty[]" value="{{ item.split_qty or '' }}" class="item-split-qty fld-number" min="0" placeholder="整件出"></td>
+                <td class="py-2 px-3"><input type="number" name="split_weight[]" step="0.001" value="{{ item.split_weight or '' }}" class="item-split-weight fld-number" min="0" placeholder="自动"></td>
+                <td class="py-2 px-3"><input type="number" name="unit_price[]" value="{{ item.unit_price or 0 }}" step="0.01" class="item-unit-price fld-number" min="0"></td>
                 <td class="py-2 px-3"><input type="text" name="amount[]" value="{{ item.amount or 0 }}" class="w-full px-2 py-1 border rounded text-sm item-amount bg-slate-50" readonly></td>
                 <td class="py-2 px-3"><input type="text" name="remark[]" value="{{ item.remark or '' }}" class="w-full px-2 py-1 border rounded text-sm"></td>
                 <td class="py-2 px-3 text-center"><button type="button" onclick="removeItem(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>
@@ -223,7 +223,7 @@ function updateFormSummary() {
 }
 </script>
 {% else %}
-<form method="POST" action="{{ url_for('sales.create') }}">
+<form method="POST" action="{{ url_for('sales.create') }}" data-enter-add="openInventoryModal">
 <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="relative customer-search-wrapper">
@@ -366,11 +366,11 @@ function addSalesRow(cardNo, productName, brand, origin, spec, qty, weight) {
         '<td class="py-2 px-3"><input type="text" name="brand[]" value="' + brand + '" class="w-full px-2 py-1 border rounded text-sm bg-slate-50" readonly></td>' +
         '<td class="py-2 px-3"><input type="text" name="origin[]" value="' + origin + '" class="w-full px-2 py-1 border rounded text-sm bg-slate-50" readonly></td>' +
         '<td class="py-2 px-3"><input type="text" name="spec[]" value="' + spec + '" class="w-full px-2 py-1 border rounded text-sm bg-slate-50" readonly></td>' +
-        '<td class="py-2 px-3"><input type="number" name="qty[]" value="' + qty + '" class="w-full px-2 py-1 border rounded text-sm bg-slate-50 item-qty" min="1" readonly></td>' +
-        '<td class="py-2 px-3"><input type="number" name="weight[]" value="' + weight + '" step="0.001" class="w-full px-2 py-1 border rounded text-sm item-weight" min="0" required></td>' +
-        '<td class="py-2 px-3"><input type="number" name="split_qty[]" class="w-full px-2 py-1 border rounded text-sm item-split-qty" min="0" max="' + qty + '" value="" placeholder="整件出"></td>' +
-        '<td class="py-2 px-3"><input type="number" name="split_weight[]" step="0.001" class="w-full px-2 py-1 border rounded text-sm item-split-weight" min="0" value="" placeholder="自动"></td>' +
-        '<td class="py-2 px-3"><input type="number" name="unit_price[]" step="0.01" class="w-full px-2 py-1 border rounded text-sm item-unit-price" min="0" value="0"></td>' +
+        '<td class="py-2 px-3"><input type="number" name="qty[]" value="' + qty + '" class="bg-slate-50 item-qty fld-number" min="1" readonly></td>' +
+        '<td class="py-2 px-3"><input type="number" name="weight[]" value="' + weight + '" step="0.001" class="item-weight fld-number" min="0" required></td>' +
+        '<td class="py-2 px-3"><input type="number" name="split_qty[]" class="item-split-qty fld-number" min="0" max="' + qty + '" value="" placeholder="整件出"></td>' +
+        '<td class="py-2 px-3"><input type="number" name="split_weight[]" step="0.001" class="item-split-weight fld-number" min="0" value="" placeholder="自动"></td>' +
+        '<td class="py-2 px-3"><input type="number" name="unit_price[]" step="0.01" class="item-unit-price fld-number" min="0" value="0"></td>' +
         '<td class="py-2 px-3"><input type="text" name="amount[]" class="w-full px-2 py-1 border rounded text-sm item-amount bg-slate-50" readonly value="0"></td>' +
         '<td class="py-2 px-3"><input type="text" name="remark[]" class="w-full px-2 py-1 border rounded text-sm"></td>' +
         '<td class="py-2 px-3 text-center"><button type="button" onclick="removeItem(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>';

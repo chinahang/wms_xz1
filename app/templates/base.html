@@ -229,6 +229,41 @@
     if (localStorage.getItem('a11y-mode') === '1') {
         document.body.classList.add('accessibility-mode');
     }
+
+    // Global keyboard handler: row navigation + Enter-to-add
+    document.addEventListener('keydown', function(e) {
+        // 1. ArrowUp/Down: move focus between rows
+        if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.target.type === 'number') {
+            var table = e.target.closest('.ledger-table, table');
+            if (!table) return;
+            e.preventDefault();
+            var td = e.target.closest('td');
+            var tr = e.target.closest('tr');
+            if (!td || !tr) return;
+            var idx = Array.from(tr.cells).indexOf(td);
+            var sib = e.key === 'ArrowUp' ? tr.previousElementSibling : tr.nextElementSibling;
+            while (sib && (sib.id === 'form-summary-row' || sib.id === 'product-summary-row' || sib.classList.contains('item-template') || sib.style.display === 'none')) {
+                sib = e.key === 'ArrowUp' ? sib.previousElementSibling : sib.nextElementSibling;
+            }
+            if (sib && sib.cells && sib.cells[idx]) {
+                var target = sib.cells[idx].querySelector('input, select, button');
+                if (target) target.focus();
+            }
+        }
+        // 2. Enter: trigger data-enter-add
+        if (e.key === 'Enter') {
+            var form = e.target.closest('[data-enter-add]');
+            if (!form) return;
+            var fn = form.getAttribute('data-enter-add');
+            if (typeof window[fn] !== 'function') return;
+            var isNumberInRow = e.target.type === 'number' && e.target.closest('tbody');
+            var isAddArea = ['add-product-name', 'add-spec', 'add-qty'].indexOf(e.target.id) >= 0;
+            if (isNumberInRow || isAddArea) {
+                e.preventDefault();
+                window[fn]();
+            }
+        }
+    });
     document.addEventListener('DOMContentLoaded', function() {
         if (localStorage.getItem('a11y-mode') === '1') {
             var label = document.getElementById('a11y-label');

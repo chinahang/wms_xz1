@@ -14,6 +14,12 @@ class Config:
         raise RuntimeError('DATABASE_URI 环境变量未设置！请在 .env 文件中设置 DATABASE_URI')
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_recycle': 1800,
+        'pool_pre_ping': True,
+        'pool_size': 10,
+        'max_overflow': 20,
+    }
     PER_PAGE = 20
     WTF_CSRF_TIME_LIMIT = None
 

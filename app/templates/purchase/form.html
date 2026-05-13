@@ -85,7 +85,7 @@
     </table>
 </div>
 {% elif edit_mode %}
-<form method="POST" action="{{ url_for('purchase.edit', id=order.id) }}">
+<form method="POST" action="{{ url_for('purchase.edit', id=order.id) }}" data-enter-add="addItem">
 <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
@@ -255,7 +255,7 @@ function updateItemIndices() {
 updateFormSummary();
 </script>
 {% else %}
-<form method="POST" action="{{ url_for('purchase.create') }}">
+<form method="POST" action="{{ url_for('purchase.create') }}" data-enter-add="addItem">
 <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
@@ -342,9 +342,9 @@ updateFormSummary();
                     </select>
                 </td>
                 <td class="py-2 px-3"><input type="text" name="spec[]" class="w-full px-2 py-1 border rounded text-sm" required></td>
-                <td class="py-2 px-3"><input type="number" name="qty[]" class="w-full px-2 py-1 border rounded text-sm text-right" min="1" required></td>
-                <td class="py-2 px-3"><input type="number" name="weight[]" step="0.001" class="w-full px-2 py-1 border rounded text-sm item-weight text-right" min="0" required></td>
-                <td class="py-2 px-3"><input type="number" name="unit_price[]" step="0.01" class="w-full px-2 py-1 border rounded text-sm item-unit-price text-right" min="0" value="0"></td>
+                <td class="py-2 px-3"><input type="number" name="qty[]" class="fld-number" min="1" required></td>
+                <td class="py-2 px-3"><input type="number" name="weight[]" step="0.001" class="fld-number item-weight" min="0" required></td>
+                <td class="py-2 px-3"><input type="number" name="unit_price[]" step="0.01" class="fld-number item-unit-price" min="0" value="0"></td>
                 <td class="py-2 px-3"><input type="text" name="amount[]" class="w-full px-2 py-1 border rounded text-sm item-amount bg-slate-50 text-right" readonly value="0"></td>
                 <td class="py-2 px-3"><input type="text" name="remark[]" class="w-full px-2 py-1 border rounded text-sm"></td>
                 <td class="py-2 px-3 text-center"><button type="button" onclick="removeItem(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>

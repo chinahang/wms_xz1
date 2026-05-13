@@ -309,3 +309,12 @@ input[type="number"] {
 .accessibility-mode .ledger-table thead th {
     font-size: 22px;
 }
+
+/* ===== Unified Form Number Inputs ===== */
+.fld-number {
+    padding: 4px 8px !important;
+    font-size: 14px !important;
+    text-align: right !important;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

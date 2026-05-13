@@ -85,7 +85,7 @@
 </div>
 
 {% elif edit_mode %}
-<form method="POST" action="{{ url_for('process.edit', id=order.id) }}">
+<form method="POST" action="{{ url_for('process.edit', id=order.id) }}" data-enter-add="addProductDetail">
 <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
@@ -158,8 +158,8 @@
                 <td class="py-2 px-2"><span>{{ d.brand }}</span><input type="hidden" name="brand[]" value="{{ d.brand }}"></td>
                 <td class="py-2 px-2"><span>{{ d.origin }}</span><input type="hidden" name="origin[]" value="{{ d.origin }}"></td>
                 <td class="py-2 px-2"><input type="text" name="spec[]" value="{{ d.spec }}" class="w-full px-1 py-0 border rounded text-xs"></td>
-                <td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="{{ d.qty }}" min="1" class="w-16 px-1 py-0 border rounded text-xs text-right"></td>
-                <td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="{{ d.weight }}" min="0" class="w-20 px-1 py-0 border rounded text-xs text-right item-weight"></td>
+                <td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="{{ d.qty }}" min="1" class="fld-number"></td>
+                <td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="{{ d.weight }}" min="0" class="fld-number item-weight"></td>
                 <td class="py-2 px-2"><span>{{ raw_inventory.warehouse.name if raw_inventory and raw_inventory.warehouse else '-' }}</span><input type="hidden" name="warehouse[]" value="{{ raw_inventory.warehouse.name if raw_inventory and raw_inventory.warehouse else '' }}"></td>
                 <td class="py-2 px-2"><input type="text" name="remark[]" value="" class="w-full px-1 py-0 border rounded text-xs"></td>
                 <td class="py-2 px-2 text-center"><button type="button" onclick="removeProduct(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>
@@ -190,7 +190,7 @@
         </div>
         <div>
             <label class="block text-xs text-slate-500 mb-1">张数</label>
-            <input type="number" id="add-qty" min="1" value="1" class="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-20">
+            <input type="number" id="add-qty" min="1" value="1" class="fld-number">
         </div>
         <button type="button" onclick="addProductDetail()" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600">添加明细</button>
         <button type="button" onclick="recalculateAll()" class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">一键理算</button>
@@ -293,8 +293,8 @@ function addProductDetail() {
         + '<td class="py-2 px-2"><span>' + brand + '</span><input type="hidden" name="brand[]" value="' + brand + '"></td>'
         + '<td class="py-2 px-2"><span>' + origin + '</span><input type="hidden" name="origin[]" value="' + origin + '"></td>'
         + '<td class="py-2 px-2"><input type="text" name="spec[]" value="' + spec + '" class="w-full px-1 py-0 border rounded text-xs"></td>'
-        + '<td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="' + qty + '" min="1" class="w-16 px-1 py-0 border rounded text-xs text-right"></td>'
-        + '<td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="' + calcWeight + '" min="0" class="w-20 px-1 py-0 border rounded text-xs text-right item-weight"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="' + qty + '" min="1" class="fld-number"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="' + calcWeight + '" min="0" class="fld-number item-weight"></td>'
         + '<td class="py-2 px-2"><span>' + warehouse + '</span><input type="hidden" name="warehouse[]" value="' + (warehouse === '-' ? '' : warehouse) + '"></td>'
         + '<td class="py-2 px-2"><input type="text" name="remark[]" value="" class="w-full px-1 py-0 border rounded text-xs"></td>'
         + '<td class="py-2 px-2 text-center"><button type="button" onclick="removeProduct(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>';
@@ -374,7 +374,7 @@ updateFormSummary();
 </script>
 
 {% else %}
-<form method="POST" action="{{ url_for('process.create') }}" class="flex flex-col" style="height:calc(100vh - 90px);gap:10px;">
+<form method="POST" action="{{ url_for('process.create') }}" class="flex flex-col" style="height:calc(100vh - 90px);gap:10px;" data-enter-add="addProductDetail">
     <input type="hidden" name="raw_card_no" id="hidden-raw-card-no" value="">
     <input type="hidden" name="raw_spec" id="hidden-raw-spec" value="">
 
@@ -471,7 +471,7 @@ updateFormSummary();
                     {% endfor %}
                 </select>
                 <input type="text" id="add-spec" placeholder="规格" style="padding:4px 8px;border:1px solid #333;font-size:12px;width:130px;">
-                <input type="number" id="add-qty" min="1" value="1" style="padding:4px 8px;border:1px solid #333;font-size:12px;width:60px;">
+                <input type="number" id="add-qty" min="1" value="1" class="fld-number" style="width:60px;">
                 <button type="button" onclick="addProductDetail()" class="btn-action">添加明细</button>
                 <button type="button" onclick="recalculateAll()" class="btn-action">一键理算</button>
             </div>
@@ -606,8 +606,8 @@ function addProductDetail() {
         + '<td class="py-2 px-2"><span>' + brand + '</span><input type="hidden" name="brand[]" value="' + brand + '"></td>'
         + '<td class="py-2 px-2"><span>' + origin + '</span><input type="hidden" name="origin[]" value="' + origin + '"></td>'
         + '<td class="py-2 px-2"><input type="text" name="spec[]" value="' + spec + '" class="w-full px-1 py-0 border rounded text-xs"></td>'
-        + '<td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="' + qty + '" min="1" class="w-16 px-1 py-0 border rounded text-xs text-right"></td>'
-        + '<td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="' + calcWeight + '" min="0" class="w-20 px-1 py-0 border rounded text-xs text-right item-weight"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="qty[]" value="' + qty + '" min="1" class="fld-number"></td>'
+        + '<td class="py-2 px-2 text-right"><input type="number" name="weight[]" step="0.001" value="' + calcWeight + '" min="0" class="fld-number item-weight"></td>'
         + '<td class="py-2 px-2"><span>' + warehouse + '</span><input type="hidden" name="warehouse[]" value="' + (warehouse === '-' ? '' : warehouse) + '"></td>'
         + '<td class="py-2 px-2"><input type="text" name="remark[]" value="" class="w-full px-1 py-0 border rounded text-xs"></td>'
         + '<td class="py-2 px-2 text-center"><button type="button" onclick="removeProduct(this)" class="text-red-600 hover:text-red-800 text-xs">删除</button></td>';
