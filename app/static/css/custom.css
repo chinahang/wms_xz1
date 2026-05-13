@@ -283,3 +283,29 @@ input[type="number"] {
     text-decoration: none;
 }
 .ledger-table .action-link:hover { text-decoration: underline; }
+
+/* ===== Accessibility Reading Mode ===== */
+.accessibility-mode .ledger-table th,
+.accessibility-mode .ledger-table td {
+    font-size: 24px;
+    padding: 4px 6px;
+    line-height: 1.3;
+}
+.accessibility-mode .ledger-table tfoot td {
+    font-size: 22px;
+}
+.accessibility-mode .ledger-data-window__header {
+    font-size: 20px;
+    padding: 6px 16px;
+}
+.accessibility-mode .ledger-actions-bar .btn-action {
+    font-size: 20px;
+    padding: 4px 12px;
+}
+.accessibility-mode .ledger-empty-row td {
+    font-size: 22px;
+    padding: 16px 12px;
+}
+.accessibility-mode .ledger-table thead th {
+    font-size: 22px;
+}

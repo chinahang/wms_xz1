@@ -83,6 +83,10 @@
         }
         </script>
         <div style="position:absolute;bottom:1rem;left:0;right:0;padding:0 1rem;color:#94a3b8;font-size:0.85rem;">
+            <div id="a11y-toggle" style="cursor:pointer;padding:0.25rem 0;display:flex;align-items:center;gap:6px;user-select:none;margin-bottom:0.5rem;">
+                <span style="font-size:0.9rem;">🔍</span>
+                <span id="a11y-label">无障碍阅读</span>
+            </div>
             <div>{{ current_user.username }}</div>
             <a href="{{ url_for('auth.logout') }}" style="color:#64748b;font-size:0.8rem;">退出登录</a>
         </div>
@@ -208,6 +212,27 @@
             document.addEventListener('htmx:configRequest', function(e) {
                 e.detail.headers['X-CSRFToken'] = csrfToken;
             });
+        }
+    });
+
+    // Accessibility reading mode (event delegation — works regardless of DOM ready state)
+    document.addEventListener('click', function(e) {
+        var toggle = e.target.closest('#a11y-toggle');
+        if (!toggle) return;
+        document.body.classList.toggle('accessibility-mode');
+        var isOn = document.body.classList.contains('accessibility-mode');
+        localStorage.setItem('a11y-mode', isOn ? '1' : '0');
+        var label = document.getElementById('a11y-label');
+        if (label) label.textContent = isOn ? '标准模式' : '无障碍阅读';
+    });
+
+    if (localStorage.getItem('a11y-mode') === '1') {
+        document.body.classList.add('accessibility-mode');
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        if (localStorage.getItem('a11y-mode') === '1') {
+            var label = document.getElementById('a11y-label');
+            if (label) label.textContent = '标准模式';
         }
     });
     </script>
