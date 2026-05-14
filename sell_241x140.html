@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>销售单</title>
+<style>
+@page{size:241mm 140mm;margin:0;}
+body{margin:0;background:#dcdcdc;font-family:"SimSun","宋体",serif;}
+.page{width:241mm;height:140mm;margin:0 auto;background:#dcdcdc;overflow:hidden;}
+.title{text-align:center;margin-top:2mm;line-height:1.15;}
+.company,.doc{font-size:8mm;}
+.topline{display:flex;justify-content:space-between;margin:2mm 1mm 0 1mm;font-size:5mm;}
+.top-right{width:85mm;line-height:1.4;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:4.4mm;background:#dcdcdc;}
+td{border:0.4mm solid #222;height:7mm;padding:0 1mm;vertical-align:middle;font-weight:normal;}
+.center{text-align:center;}
+.blank{height:25mm;}
+.footer{font-size:4.5mm;padding-left:15mm;}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="title">
+<div class="company">台州祥展物资有限公司</div>
+<div class="doc">销售单</div>
+</div>
+
+<div class="topline">
+<div>开单日期</div>
+<div class="top-right">
+<div>N0. ________</div>
+<div>提单有效期：______</div>
+</div>
+</div>
+
+<table>
+<colgroup>
+<col style="width:5.5%"><col style="width:20.5%"><col style="width:7.8%">
+<col style="width:6.2%"><col style="width:17.5%"><col style="width:5.8%">
+<col style="width:5.3%"><col style="width:7.8%"><col style="width:7.8%">
+<col style="width:8%"><col style="width:8%">
+</colgroup>
+
+<tr><td colspan="5">购货单位：</td><td colspan="6">税号</td></tr>
+<tr><td colspan="5">地址电话</td><td colspan="6">开户行</td></tr>
+
+<tr class="center">
+<td>子项号</td><td>卡号</td><td>品名</td><td>牌号</td>
+<td>规格</td><td>产地</td><td>件数</td><td>吨位</td>
+<td>单价</td><td>金额</td><td>备注</td>
+</tr>
+
+<tr><td class="center">1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">4</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td class="center">5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+<tr><td colspan="11">合计</td></tr>
+<tr><td colspan="11">备注</td></tr>
+<tr><td colspan="11">仓库地址</td></tr>
+<tr><td colspan="11" class="blank"></td></tr>
+</table>
+
+<div class="footer">开单人：</div>
+</div>
+</body>
+</html>

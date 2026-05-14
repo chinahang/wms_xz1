@@ -428,7 +428,7 @@ def print_view(id, template_type):
     if template_type not in ('delivery', 'invoice'):
         abort(404)
     order = SalesOrder.query.get_or_404(id)
-    page_size = 8
+    page_size = 5
     batches = [order.items[i:i+page_size] for i in range(0, len(order.items), page_size)]
     if not batches:
         batches = [[]]

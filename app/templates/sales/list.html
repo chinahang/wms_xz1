@@ -112,7 +112,13 @@
     {% if items %}
     <div class="ledger-actions-bar">
         <button class="btn-action" onclick="doLedgerAction('edit')">编辑</button>
-        <button class="btn-action" onclick="window.print()">打印</button>
+        <div class="relative" style="display:inline-block">
+            <button class="btn-action" onclick="this.nextElementSibling.classList.toggle('hidden')">打印 ▾</button>
+            <div class="absolute bottom-full mb-1 left-0 bg-white border border-slate-300 rounded shadow-lg hidden whitespace-nowrap z-10">
+                <button class="block w-full text-left px-4 py-2 hover:bg-slate-100 text-sm" onclick="doPrint('delivery')">提货单</button>
+                <button class="block w-full text-left px-4 py-2 hover:bg-slate-100 text-sm" onclick="doPrint('invoice')">销售单</button>
+            </div>
+        </div>
         <button class="btn-action" style="color:#dc2626" onclick="doLedgerAction('delete')">删除</button>
     </div>
     {% endif %}
@@ -152,5 +158,10 @@ document.addEventListener('click', function(e) {
         document.querySelectorAll('[id^=customer-dropdown-]').forEach(function(d) { d.classList.add('hidden'); });
     }
 });
+function doPrint(type) {
+    var id = window._ledgerSelectedId;
+    if (!id) { alert('请先点击选择一行数据'); return; }
+    window.open('/sales/print/' + id + '/' + type, '_blank');
+}
 </script>
 {% endblock %}
